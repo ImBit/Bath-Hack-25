@@ -30,7 +30,7 @@ class MapScreen extends StatelessWidget {
                   const LatLng(45.3367881884556, 14.159452282322459),
                   const LatLng(45.264129635422826, 14.252585831779033),
                 ),
-                imageProvider: const NetworkImage("https://preview.redd.it/jack-block-v0-wbgfn6duw6qd1.png?auto=webp&s=5e949db9e0f5b26b7df4904726cfa8d3aa5616b2"),
+                imageProvider: const NetworkImage("https://hard-drive.net/wp-content/uploads/2024/01/jb.jpg"),
               ),
             ],
           ),
