@@ -8,77 +8,168 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Profile'),
+        title: const Text('Profile'),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            const CircleAvatar(
-              radius: 50,
-              backgroundImage: NetworkImage('https://via.placeholder.com/100'),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'User Name',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Awesome Wildlife Saver',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-            const SizedBox(height: 24),
-            const ProfileStatsRow(),
-            const SizedBox(height: 24),
-            Card(
-              margin: EdgeInsets.zero,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Contributions:',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 16),
-                    ListTile(
-                      leading: const Icon(Icons.camera_alt),
-                      title: const Text('Photos Contributed'),
-                      trailing: const Text('12'),
-                      onTap: () {},
-                    ),
-                    const Divider(),
-                    ListTile(
-                      leading: const Icon(Icons.insert_comment),
-                      title: const Text('Comments'),
-                      trailing: const Text('28'),
-                      onTap: () {},
-                    ),
-                    const Divider(),
-                    ListTile(
-                      leading: const Icon(Icons.location_on),
-                      title: const Text('Locations Visited'),
-                      trailing: const Text('5'),
-                      onTap: () {},
-                    ),
-                  ],
+      body: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(8),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundImage: NetworkImage(
+                      'https://avatars.githubusercontent.com/u/13787163?v=4'),
                 ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Heath',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                SizedBox(
+                  width: 200,
+                  child: ProfileStatsRow(),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Hello, my name is Heath. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Wrap(
+                    children: [
+                      SizedBox(
+                        width: (MediaQuery.of(context).size.width) / 3,
+                        height: (MediaQuery.of(context).size.width) / 3,
+                        child: const Image(
+                          image: NetworkImage(
+                              'https://i.ytimg.com/vi/czR6DrMptJE/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLBm-s4RSY9BGKY3Km3KS0ASs_RaiQ'),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      SizedBox(
+                        width: (MediaQuery.of(context).size.width) / 3,
+                        height: (MediaQuery.of(context).size.width) / 3,
+                        child: const Image(
+                          image: NetworkImage(
+                              'https://assets.tiltify.com/uploads/media_type/image/203025/blob-09636982-a21a-494b-bbe4-3692c2720ae3.jpeg'),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      SizedBox(
+                        width: (MediaQuery.of(context).size.width) / 3,
+                        height: (MediaQuery.of(context).size.width) / 3,
+                        child: const Image(
+                          image: NetworkImage(
+                              'https://media.gettyimages.com/id/842992554/photo/dove-with-glasses.jpg?s=612x612&w=gi&k=20&c=-Q6F36h_VDaZLVIh90CAfvP3R-ICpHKyjZ5e2wKNqos='),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      SizedBox(
+                        width: (MediaQuery.of(context).size.width) / 3,
+                        height: (MediaQuery.of(context).size.width) / 3,
+                        child: const Image(
+                          image: NetworkImage(
+                              'https://raspberriescards.com/cdn/shop/files/BirdSticker.jpg?v=1696778689'),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      SizedBox(
+                        width: (MediaQuery.of(context).size.width) / 3,
+                        height: (MediaQuery.of(context).size.width) / 3,
+                        child: const Image(
+                          image: NetworkImage(
+                              'https://i.ytimg.com/vi/czR6DrMptJE/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLBm-s4RSY9BGKY3Km3KS0ASs_RaiQ'),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      SizedBox(
+                        width: (MediaQuery.of(context).size.width) / 3,
+                        height: (MediaQuery.of(context).size.width) / 3,
+                        child: const Image(
+                          image: NetworkImage(
+                              'https://assets.tiltify.com/uploads/media_type/image/203025/blob-09636982-a21a-494b-bbe4-3692c2720ae3.jpeg'),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      SizedBox(
+                        width: (MediaQuery.of(context).size.width) / 3,
+                        height: (MediaQuery.of(context).size.width) / 3,
+                        child: const Image(
+                          image: NetworkImage(
+                              'https://media.gettyimages.com/id/842992554/photo/dove-with-glasses.jpg?s=612x612&w=gi&k=20&c=-Q6F36h_VDaZLVIh90CAfvP3R-ICpHKyjZ5e2wKNqos='),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      SizedBox(
+                        width: (MediaQuery.of(context).size.width) / 3,
+                        height: (MediaQuery.of(context).size.width) / 3,
+                        child: const Image(
+                          image: NetworkImage(
+                              'https://raspberriescards.com/cdn/shop/files/BirdSticker.jpg?v=1696778689'),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      SizedBox(
+                        width: (MediaQuery.of(context).size.width) / 3,
+                        height: (MediaQuery.of(context).size.width) / 3,
+                        child: const Image(
+                          image: NetworkImage(
+                              'https://i.ytimg.com/vi/czR6DrMptJE/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLBm-s4RSY9BGKY3Km3KS0ASs_RaiQ'),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      SizedBox(
+                        width: (MediaQuery.of(context).size.width) / 3,
+                        height: (MediaQuery.of(context).size.width) / 3,
+                        child: const Image(
+                          image: NetworkImage(
+                              'https://assets.tiltify.com/uploads/media_type/image/203025/blob-09636982-a21a-494b-bbe4-3692c2720ae3.jpeg'),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      SizedBox(
+                        width: (MediaQuery.of(context).size.width) / 3,
+                        height: (MediaQuery.of(context).size.width) / 3,
+                        child: const Image(
+                          image: NetworkImage(
+                              'https://media.gettyimages.com/id/842992554/photo/dove-with-glasses.jpg?s=612x612&w=gi&k=20&c=-Q6F36h_VDaZLVIh90CAfvP3R-ICpHKyjZ5e2wKNqos='),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      SizedBox(
+                        width: (MediaQuery.of(context).size.width) / 3,
+                        height: (MediaQuery.of(context).size.width) / 3,
+                        child: const Image(
+                          image: NetworkImage(
+                              'https://raspberriescards.com/cdn/shop/files/BirdSticker.jpg?v=1696778689'),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.settings),
-              label: const Text('Settings'),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
       bottomNavigationBar: const CustomBottomNavigation(currentIndex: 3),
     );
