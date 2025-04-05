@@ -38,3 +38,5 @@ flutter:
   # Add assets if needed
   assets:
     - assets/pigeon.webp
+    - assets/fox.webp
+    - assets/whale.jpg
