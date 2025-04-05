@@ -20,8 +20,107 @@ class FirestoreService {
     return FirebaseFirestore.instance;
   }
 
-  // Existing user-related functions...
-  // ...
+// Get user by ID
+  Future<UserObject?> getUserById(String userId) async {
+    final db = await _db;
+    try {
+      final docSnapshot = await db.collection("users").doc(userId).get();
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data() as Map<String, dynamic>;
+        return UserObject.fromMap(data, docId: docSnapshot.id);
+      }
+      return null;
+    } catch (e) {
+      print("Error getting user by ID: $e");
+      return null;
+    }
+  }
+
+// Get user by username
+  Future<UserObject?> getUserByUsername(String username) async {
+    final db = await _db;
+    try {
+      final querySnapshot = await db
+          .collection("users")
+          .where("username", isEqualTo: username)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final doc = querySnapshot.docs.first;
+        return UserObject.fromMap(
+            doc.data() as Map<String, dynamic>,
+            docId: doc.id
+        );
+      }
+      return null;
+    } catch (e) {
+      print("Error getting user by username: $e");
+      return null;
+    }
+  }
+
+// Save or update user
+  Future<String?> saveUser(UserObject user) async {
+    final db = await _db;
+    try {
+      if (user.id != null) {
+        // Update existing user
+        await db.collection("users").doc(user.id).update(user.toMap());
+        return user.id;
+      } else {
+        // Check if username already exists
+        if (!await isUsernameAvailable(user.username)) {
+          print("Username already taken");
+          return null;
+        }
+        // Create new user
+        final docRef = await db.collection("users").add(user.toMap());
+        return docRef.id;
+      }
+    } catch (e) {
+      print("Error saving user: $e");
+      return null;
+    }
+  }
+
+// Check if username is available
+  Future<bool> isUsernameAvailable(String username) async {
+    final db = await _db;
+    try {
+      final querySnapshot = await db
+          .collection("users")
+          .where("username", isEqualTo: username)
+          .limit(1)
+          .get();
+
+      return querySnapshot.docs.isEmpty;
+    } catch (e) {
+      print("Error checking username availability: $e");
+      return false;
+    }
+  }
+
+// User login
+  Future<UserObject?> login(String username, String password) async {
+    try {
+      final user = await getUserByUsername(username);
+      if (user == null) {
+        print("Username does not exist");
+        return null;
+      }
+
+      if (user.password == password) {
+        return user;
+      } else {
+        print("Incorrect password");
+        return null;
+      }
+    } catch (e) {
+      print("Error during login: $e");
+      return null;
+    }
+  }
 
   // PHOTO RELATED FUNCTIONS
 
