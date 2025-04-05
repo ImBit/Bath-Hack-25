@@ -12,7 +12,7 @@ class StorageManager {
   StorageManager._internal();
 
   /// Get the application documents directory
-  Future<Directory> get _appDir async {
+  Future<Directory> get appDir async {
     final directory = await getApplicationDocumentsDirectory();
     final imagesDir = Directory('${directory.path}/animal_images');
 
@@ -26,7 +26,7 @@ class StorageManager {
 
   /// Get all images from app storage
   Future<List<File>> getAllImages() async {
-    final dir = await _appDir;
+    final dir = await appDir;
     List<File> images = [];
 
     try {
@@ -55,7 +55,7 @@ class StorageManager {
 
   /// Save an image to app storage
   Future<File> saveImage(File sourceImage) async {
-    final dir = await _appDir;
+    final dir = await appDir;
     final extension = path.extension(sourceImage.path);
     final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
     final newPath = path.join(dir.path, 'image_${timestamp}$extension');
@@ -83,7 +83,7 @@ class StorageManager {
 
   /// Clear all images from app storage
   Future<void> clearAllImages() async {
-    final dir = await _appDir;
+    final dir = await appDir;
 
     try {
       final entities = await dir.list().toList();

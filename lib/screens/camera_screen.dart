@@ -6,6 +6,7 @@ import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import '../utils/storage_manager.dart';
 import '../widgets/bottom_navigation.dart';
 
 class CameraScreen extends StatefulWidget {
@@ -37,14 +38,9 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
 
   Future<void> _initAppDirectory() async {
     try {
-      // Get the app's documents directory
-      final directory = await _appDir;
-      final imagesDir = Directory('${directory.path}/animal_images');
-
-      // Create the directory if it doesn't exist
-      if (!(await imagesDir.exists())) {
-        await imagesDir.create(recursive: true);
-      }
+      // Use StorageManager to get the app directory
+      final storageManager = StorageManager();
+      final imagesDir = await storageManager.appDir;
 
       _appDirectory = imagesDir;
       print("App directory initialized: ${imagesDir.path}");
