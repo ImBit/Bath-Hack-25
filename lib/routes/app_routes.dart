@@ -6,6 +6,7 @@ import '../screens/animal_info_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/register_screen.dart';
+import '../screens/map_screen.dart';
 
 class AppRoutes {
   static const String home = '/';
@@ -15,6 +16,7 @@ class AppRoutes {
   static const String profile = '/profile';
   static const String login = "/login";
   static const String register = "/register";
+  static const String map = "/map";
 
   static Map<String, WidgetBuilder> get routes => {
     home: (context) => const JournalView(),
@@ -24,5 +26,6 @@ class AppRoutes {
     profile: (context) => const ProfileScreen(),
     login: (context) => const LoginScreen(),
     register: (context) => const RegisterScreen(),
+    map: (context) => const MapScreen(),
   };
 }

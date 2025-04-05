@@ -20,6 +20,8 @@ dependencies:
   provider: ^6.1.1
   flutter_file_dialog: ^3.0.0
   http: ^1.1.0
+  flutter_map: ^8.1.1
+  latlong2: ^0.9.1
 
 dev_dependencies:
   flutter_test:
