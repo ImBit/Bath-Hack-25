@@ -27,7 +27,7 @@ const rarityStrings = {
 
 class JournalEntry {
   final String name;
-  final String imageUrl;
+  final ImageProvider<Object> image;
   final String level;
   final int currentProgress;
   final int maxProgress;
@@ -36,7 +36,7 @@ class JournalEntry {
 
   JournalEntry({
     required this.name,
-    required this.imageUrl,
+    required this.image,
     required this.level,
     required this.currentProgress,
     required this.maxProgress,
@@ -56,8 +56,8 @@ class _JournalViewState extends State<JournalView> {
   final List<JournalEntry> entries = [
     JournalEntry(
         name: 'Pigeon',
-        imageUrl:
-            'https://static.vecteezy.com/system/resources/previews/010/345/372/non_2x/pigeon-bird-color-icon-illustration-vector.jpg',
+        image:
+            const NetworkImage('https://static.vecteezy.com/system/resources/previews/010/345/372/non_2x/pigeon-bird-color-icon-illustration-vector.jpg'),
         level: 'Level 1',
         currentProgress: 50,
         maxProgress: 100,
@@ -66,14 +66,24 @@ class _JournalViewState extends State<JournalView> {
             'Feared by crumbs, respected by couriers, the **rock pigeon** (*Columba livia*) is a master of the urban biome. Descended from wild cliff-dwelling ancestors, it now commands the skies of cityscapes worldwide, nesting on ledges and high-rises as if they were ancient seaside cliffs.\n\nWith a built-in biological compass, it can sense Earth’s magnetic fields and the position of the sun, allowing it to navigate home from over 1,000 miles away—a skill so precise, humans once relied on it in war.'),
     JournalEntry(
         name: 'Fox',
-        imageUrl:
-            'https://banner2.cleanpng.com/20230504/liw/transparent-fox-cute-fox-little-fox-cute-cartoon-1711145904475.webp',
+        image:
+            const AssetImage('assets/fox.webp'),
         level: 'Level 2',
-        currentProgress: 75,
-        maxProgress: 100,
+        currentProgress: 40,
+        maxProgress: 50,
         rarity: Rarity.uncommon,
         description:
             'Slinking through twilight like a living shadow, the **red fox** (*Vulpes vulpes*) is nature\'s stealth specialist. With ears fine-tuned to the rustle of a mouse beneath snow and paws padded for silent pursuit, it hunts with uncanny precision—sometimes leaping high into the air to pounce with acrobatic flair.\n\nFound from Arctic tundra to suburban sprawl, this adaptable creature has the widest range of any wild canid, thriving anywhere stealth and cunning can earn a meal.'),
+    JournalEntry(
+        name: 'Humpback Whale',
+        image:
+            const AssetImage('assets/whale.jpg'),
+        level: 'Level 1',
+        currentProgress: 1,
+        maxProgress: 10,
+        rarity: Rarity.legendary,
+        description:
+            'Gliding through the ocean\'s blue vastness, the **humpback whale** (*Megaptera novaeangliae*) is a leviathan with the soul of a singer. Its eerie, echoing songs can travel hundreds of miles underwater, weaving patterns that may help with navigation, communication, or even courtship.\n\nEach year, it migrates vast distances—up to 16,000 miles round trip—guided by instinct alone. Despite weighing as much as a school bus, it breaches in spectacular arcs, a creature of both power and grace.')
     // Add more entries as needed
   ];
 
@@ -234,7 +244,7 @@ class AnimalDetails extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: 20,
-          backgroundImage: NetworkImage(entry.imageUrl),
+          backgroundImage: entry.image,
         ),
         const SizedBox(width: 12),
         Expanded(
