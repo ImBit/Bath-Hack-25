@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "24580544258",
+    "project_id": "bath-hack-25-f016b",
+    "storage_bucket": "bath-hack-25-f016b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:24580544258:android:1a3e3d696dcba08b35d41b",
+        "android_client_info": {
+          "package_name": "com.example.bath_hack_2025"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDFt14qmWan_gpulvcAy6FfPOvfMPKeRuk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

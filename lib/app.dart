@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
 import 'routes/app_routes.dart';
 
 class MyApp extends StatelessWidget {
