@@ -1,3 +1,7 @@
+import 'package:animal_conservation/screens/camera_screen.dart';
+import 'package:animal_conservation/screens/gallery_screen.dart';
+import 'package:animal_conservation/screens/home_screen.dart';
+import 'package:animal_conservation/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import '../routes/app_routes.dart';
 
@@ -16,40 +20,60 @@ class CustomBottomNavigation extends StatelessWidget {
       type: BottomNavigationBarType.fixed,
       selectedItemColor: Theme.of(context).colorScheme.primary,
       unselectedItemColor: Colors.grey,
+      showSelectedLabels: false,
+      showUnselectedLabels: false,
       onTap: (index) {
         if (index == currentIndex) return;
 
-        switch (index) {
-          case 0:
-            Navigator.pushReplacementNamed(context, AppRoutes.home);
-            break;
-          case 1:
-            Navigator.pushReplacementNamed(context, AppRoutes.camera);
-            break;
-          case 2:
-            Navigator.pushReplacementNamed(context, AppRoutes.gallery);
-            break;
-          case 3:
-            Navigator.pushReplacementNamed(context, AppRoutes.profile);
-            break;
-        }
+        final screens = [
+          const HomeScreen(),
+          const HomeScreen(),
+          const CameraScreen(),
+          const GalleryScreen(),
+          const ProfileScreen(),
+        ];
+
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                screens[index],
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
+          ),
+        );
       },
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Home',
+      items: [
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.map),
+          label: 'Map',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.list_alt),
+          label: 'Catalog',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.camera_alt),
+          icon: Container(
+            decoration: const BoxDecoration(
+              color: Colors
+                  .blue, // You can use Theme.of(context).colorScheme.primary if you want
+              shape: BoxShape.circle,
+            ),
+            padding: const EdgeInsets.all(16),
+            child: const Icon(
+              Icons.camera_alt,
+              color: Colors.white,
+            ),
+          ),
           label: 'Camera',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.photo_library),
-          label: 'Gallery',
-        ),
-        BottomNavigationBarItem(
+        const BottomNavigationBarItem(
           icon: Icon(Icons.person),
           label: 'Profile',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.settings),
+          label: 'Settings',
         ),
       ],
     );
