@@ -149,7 +149,7 @@ class _JournalViewState extends State<JournalView> {
           ),
         ),
       ),
-      bottomNavigationBar: const CustomBottomNavigation(currentIndex: 0),
+      bottomNavigationBar: const CustomBottomNavigation(currentIndex: 1),
     );
   }
 }

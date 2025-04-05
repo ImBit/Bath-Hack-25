@@ -408,7 +408,7 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
           _buildAlwaysVisibleUploadButton(),
         ],
       ),
-      bottomNavigationBar: const CustomBottomNavigation(currentIndex: 1),
+      bottomNavigationBar: const CustomBottomNavigation(currentIndex: 2),
     );
   }
 
