@@ -1,0 +1,112 @@
+{
+    "predictions": [
+        {
+            "filepath": "animal_identification/images/-lord-of-the-sea-whale-transparent-background-4.png",
+            "classifications": {
+                "classes": [
+                    "aca65aaa-8c6d-4b69-94de-842b08b13bd6;mammalia;cetartiodactyla;bovidae;bos;taurus;domestic cattle",
+                    "f8db21f0-6b79-4444-8be4-b87906d56e6a;aves;pelecaniformes;ardeidae;ardea;albus;great egret",
+                    "f1856211-cfb7-4a5b-9158-c0f72fd09ee6;;;;;;blank",
+                    "990ae9dd-7a59-4344-afcb-1b7b21368000;mammalia;primates;hominidae;homo;sapiens;human",
+                    "b1352069-a39c-4a84-a949-60044271c0c1;aves;;;;;bird"
+                ],
+                "scores": [
+                    0.49583038687705994,
+                    0.07522424310445786,
+                    0.07300619781017303,
+                    0.05657615885138512,
+                    0.030405374243855476
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.7647867798805237,
+                    "bbox": [
+                        0.00625002384185791,
+                        0.027027040719985962,
+                        0.9781249761581421,
+                        0.9324324131011963
+                    ]
+                }
+            ],
+            "prediction": "1f689929-883d-4dae-958c-3d57ab5b6c16;;;;;;animal",
+            "prediction_score": 0.6580361630767584,
+            "prediction_source": "classifier+rollup_to_kingdom",
+            "model_version": "4.0.0a"
+        },
+        {
+            "filepath": "animal_identification/images/frog-Va4lJ52-600.jpg",
+            "classifications": {
+                "classes": [
+                    "04eda76f-c0e7-4e9e-85c3-5b1542db2915;amphibia;anura;bufonidae;rhinella;marina;cane toad",
+                    "fa3a7f4a-912a-4ff9-b82c-95b27f3d39fb;mammalia;perissodactyla;rhinocerotidae;diceros;bicornis;black rhinoceros",
+                    "308c4f30-a4c5-42bd-87f4-fa7932ac2b17;mammalia;cetartiodactyla;tragulidae;moschiola;indica;indian chevrotain",
+                    "2ae71e77-7d1f-4192-b2f3-bca9fea14762;mammalia;lagomorpha;leporidae;lepus;granatensis;granada hare",
+                    "a4f23daa-a66d-483c-94d4-3132aea33283;mammalia;artiodactyla;camelidae;camelus;dromedarius;dromedary camel"
+                ],
+                "scores": [
+                    0.477232962846756,
+                    0.03372853249311447,
+                    0.025114217773079872,
+                    0.0172103364020586,
+                    0.007589966524392366
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.9655820727348328,
+                    "bbox": [
+                        0.15000000596046448,
+                        0.3400000035762787,
+                        0.6366666555404663,
+                        0.5350000262260437
+                    ]
+                }
+            ],
+            "prediction": "1f689929-883d-4dae-958c-3d57ab5b6c16;;;;;;animal",
+            "prediction_score": 0.9655820727348328,
+            "prediction_source": "detector",
+            "model_version": "4.0.0a"
+        },
+        {
+            "filepath": "animal_identification/images/images.jpg",
+            "classifications": {
+                "classes": [
+                    "3d80f1d6-b1df-4966-9ff4-94053c7a902a;mammalia;carnivora;canidae;canis;familiaris;domestic dog",
+                    "d3d5325f-b055-4925-b875-5cd28af54215;mammalia;carnivora;canidae;canis;;canis species",
+                    "189cdd40-b83d-48d1-a4fa-e43a104f2a23;mammalia;cetartiodactyla;bovidae;capra;aegagrus hircus;domestic goat",
+                    "9212982e-8a58-4775-a6ac-e9a43110d8f5;mammalia;carnivora;felidae;felis;catus;domestic cat",
+                    "e237b8d3-997f-4f3b-8736-8c3958f8182c;aves;passeriformes;corvidae;corvus;;corvus species"
+                ],
+                "scores": [
+                    0.9771695733070374,
+                    0.01779414527118206,
+                    0.003022237680852413,
+                    0.0004716877010650933,
+                    0.00018942129099741578
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.8303965926170349,
+                    "bbox": [
+                        0.19999998807907104,
+                        0.18045112490653992,
+                        0.7947368621826172,
+                        0.6992481350898743
+                    ]
+                }
+            ],
+            "prediction": "3d80f1d6-b1df-4966-9ff4-94053c7a902a;mammalia;carnivora;canidae;canis;familiaris;domestic dog",
+            "prediction_score": 0.9771695733070374,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        }
+    ]
+}
