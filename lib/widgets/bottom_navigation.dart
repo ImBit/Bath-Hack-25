@@ -1,6 +1,6 @@
 import 'package:animal_conservation/screens/camera_screen.dart';
 import 'package:animal_conservation/screens/gallery_screen.dart';
-import 'package:animal_conservation/screens/home_screen.dart';
+import 'package:animal_conservation/screens/journal_screen.dart';
 import 'package:animal_conservation/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import '../routes/app_routes.dart';
@@ -26,8 +26,8 @@ class CustomBottomNavigation extends StatelessWidget {
         if (index == currentIndex) return;
 
         final screens = [
-          const HomeScreen(),
-          const HomeScreen(),
+          const JournalView(),
+          const JournalView(),
           const CameraScreen(),
           const ProfileScreen(),
           const GalleryScreen(),
@@ -50,7 +50,7 @@ class CustomBottomNavigation extends StatelessWidget {
         ),
         const BottomNavigationBarItem(
           icon: Icon(Icons.list_alt),
-          label: 'Catalog',
+          label: 'Journal',
         ),
         BottomNavigationBarItem(
           icon: Container(
