@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../screens/home_screen.dart';
 import '../screens/journal_screen.dart';
 import '../screens/camera_screen.dart';
 import '../screens/gallery_screen.dart';
