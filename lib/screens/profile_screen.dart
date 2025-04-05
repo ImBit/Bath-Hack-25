@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/user_manager.dart';
 import '../widgets/bottom_navigation.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -13,24 +14,23 @@ class ProfileScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          const Padding(
-            padding: EdgeInsets.all(8),
+          Padding(
+            padding: const EdgeInsets.all(8),
             child: Row(
               children: [
                 CircleAvatar(
                   radius: 20,
-                  backgroundImage: NetworkImage(
-                      'https://avatars.githubusercontent.com/u/13787163?v=4'),
+                  backgroundImage: UserManager.getActiveUserProfilePicture(),
                 ),
-                SizedBox(width: 12),
-                Expanded(
+                const SizedBox(width: 12),
+                const Expanded(
                   child: Text(
                     'Heath',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 200,
                   child: ProfileStatsRow(),
                 ),

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import '../database/objects/user_object.dart';
 
@@ -12,7 +13,7 @@ class UserManager with ChangeNotifier {
   UserManager._internal();
 
   // The currently active user
-  UserObject? _currentUser;
+  static UserObject? _currentUser;
 
   // Getter for the current user
   UserObject? get currentUser => _currentUser;
@@ -40,6 +41,14 @@ class UserManager with ChangeNotifier {
   // Get user's display name
   String getUserDisplayName() {
     return _currentUser?.username ?? "Guest";
+  }
+
+  static ImageProvider getActiveUserProfilePicture() {
+    if (_currentUser == null) {
+      return const AssetImage('assets/images/default_profile.png');
+    }
+
+    return _currentUser!.getProfilePictureImage();
   }
 
   // Get current date and time in UTC with specified format

@@ -1,3 +1,9 @@
+import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
+
+import '../../services/image_encryptor.dart';
+
 class UserObject {
   String? id;
   final String username;
@@ -37,5 +43,15 @@ class UserObject {
   @override
   String toString() {
     return 'UserObject(id: $id, username: $username, password: $password, bio: $bio, pfp: $pfp)';
+  }
+}
+
+extension UserObjectExtension on UserObject {
+  Future<void> setProfilePicture(File imageFile) async {
+    pfp = await ImageEncryptor.encryptPngToString(imageFile);
+  }
+
+  ImageProvider getProfilePictureImage() {
+    return ImageEncryptor.createImageFromEncryptedString(pfp);
   }
 }

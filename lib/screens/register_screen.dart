@@ -20,19 +20,31 @@ class _LoginScreenState extends State<RegisterScreen> {
   final RegExp _passwordVal = RegExp(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).+$');
   final firestoreService = FirestoreService();
 
-  void _validateUsername() {
-    setState(() {
-      if (_username.toLowerCase() == "dev") {
-        _passwordError = null;
-      } else if (_username.isEmpty) {
+  Future<void> _validateUsername() async {
+    if (_username.toLowerCase() == "dev") {
+      setState(() {
+        _usernameError = null;
+      });
+      return;
+    } else if (_username.isEmpty) {
+      setState(() {
         _usernameError = "Username cannot be empty";
-      } else if (!await firestoreService.isUsernameAvailable(_username)) {
+      });
+      return;
+    }
+
+    // Run the async check outside of setState
+    bool isAvailable = await firestoreService.isUsernameAvailable(_username);
+
+    // Then update the state with the result
+    setState(() {
+      if (!isAvailable) {
         _usernameError = "Username already exists";
       } else {
         _usernameError = null;
       }
     });
-  }
+}
 
   void _validatePassword() {
     setState(() {
@@ -48,13 +60,14 @@ class _LoginScreenState extends State<RegisterScreen> {
     });
   }
 
-  void _submitForm() {
-    _validateUsername();
+  Future<void> _submitForm() async {
+    await _validateUsername();
     _validatePassword();
 
-    if (_usernameError == null && _passwordError == null) {
-      firestoreService.saveUser(UserObject(username: _username, password: _password));
-
+    if (_usernameError == null && (_passwordError == null || _username.toLowerCase() == "dev")) {
+      if (_username.toLowerCase() != "dev") {
+        await firestoreService.saveUser(UserObject(username: _username, password: _password));
+      }
       Navigator.pushReplacementNamed(context, AppRoutes.camera);
     }
   }
@@ -90,7 +103,6 @@ class _LoginScreenState extends State<RegisterScreen> {
                 ),
                 onChanged: (value) {
                   _username = value;
-                  _validateUsername();
                 },
               ),
             ),
