@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const CameraScreen(), // Set Camera as the default screen
+      home: const CameraScreen(),
       routes: {
         '/camera': (context) => const CameraScreen(),
       },
