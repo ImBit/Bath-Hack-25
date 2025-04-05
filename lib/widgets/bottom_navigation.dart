@@ -29,8 +29,8 @@ class CustomBottomNavigation extends StatelessWidget {
           const HomeScreen(),
           const HomeScreen(),
           const CameraScreen(),
-          const GalleryScreen(),
           const ProfileScreen(),
+          const GalleryScreen(),
         ];
 
         Navigator.pushReplacement(
