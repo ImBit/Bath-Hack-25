@@ -5,7 +5,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import '../database/database_management.dart';
+import '../database/objects/photo_object.dart';
 import '../services/api_service.dart';
+import '../services/location_manager.dart';
 import '../utils/storage_manager.dart';
 import '../widgets/bottom_navigation.dart';
 
@@ -723,11 +726,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
               ),
             ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _takePhoto,
-        tooltip: 'Take Photo',
-        child: const Icon(Icons.camera_alt),
       ),
       bottomNavigationBar: const CustomBottomNavigation(currentIndex: 4),
     );
