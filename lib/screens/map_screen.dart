@@ -15,7 +15,7 @@ class MapScreen extends StatelessWidget {
       ),
       body: FlutterMap(
         options: const MapOptions(
-          initialCenter: LatLng(45.3367881884556, 14.159452282322459), // Center the map over London
+          initialCenter: LatLng(51.380007, -2.325986), // Center the map over London
           initialZoom: 9.2,
         ),
         children: [
@@ -34,7 +34,18 @@ class MapScreen extends StatelessWidget {
               ),
             ],
           ),
-        ]
+           MarkerLayer(
+            alignment: Alignment.topCenter,
+            markers: [
+              Marker(
+                point: const LatLng(51.380007, -2.325986),
+                width: 80,
+                height: 80,
+                child: Image.network('https://static.thenounproject.com/png/888711-200.png'),
+              ),
+            ],
+          ),
+        ],
       ),
       bottomNavigationBar: const CustomBottomNavigation(currentIndex: 0),
     );
