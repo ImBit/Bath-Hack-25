@@ -24,6 +24,7 @@ dependencies:
   flutter_map: ^8.1.1
   latlong2: ^0.9.1
   geolocator: ^10.0.0
+  flutter_markdown_plus: ^1.0.3
 
 dev_dependencies:
   flutter_test:
@@ -35,5 +36,5 @@ flutter:
   uses-material-design: true
 
   # Add assets if needed
-  # assets:
-  #   - assets/images/
+  assets:
+    - assets/pigeon.webp
