@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:camera/camera.dart';
+import 'package:image_picker/image_picker.dart';
 import '../widgets/bottom_navigation.dart';
 
 class CameraScreen extends StatefulWidget {
@@ -13,10 +15,10 @@ class CameraScreen extends StatefulWidget {
 class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver {
   CameraController? controller;
   List<CameraDescription> cameras = [];
-  File? imageFile;
+  dynamic imageFile; // DEPENDS ON PLATFORM: Will be File or XFile
   bool isCapturing = false;
-  bool isFlashOn = false;
   int selectedCameraIndex = 0;
+  bool showingPreview = false;
 
   @override
   void initState() {
@@ -36,34 +38,31 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
   void didChangeAppLifecycleState(AppLifecycleState state) {
     final CameraController? cameraController = controller;
 
-    // App state changed before camera was initialized
     if (cameraController == null || !cameraController.value.isInitialized) {
       return;
     }
 
     if (state == AppLifecycleState.inactive) {
-      // Free up memory when camera not active
       cameraController.dispose();
     } else if (state == AppLifecycleState.resumed) {
-      // Reinitialize the camera with same properties
       _onNewCameraSelected(cameras[selectedCameraIndex]);
     }
   }
 
   Future<void> _initializeCamera() async {
     try {
-      cameras = await availableCameras();
+      if (!kIsWeb) {
+        cameras = await availableCameras();
 
-      if (cameras.isEmpty) {
-        _showMessage('No cameras found');
-        return;
+        if (cameras.isEmpty) {
+          _showMessage('No cameras found');
+          return;
+        }
+
+        _onNewCameraSelected(cameras[selectedCameraIndex]);
       }
-
-      _onNewCameraSelected(cameras[selectedCameraIndex]);
-    } on CameraException catch (e) {
-      _showCameraException(e);
     } catch (e) {
-      _showMessage('Error: ${e.toString()}');
+      _showMessage('Error initializing camera: ${e.toString()}');
     }
   }
 
@@ -72,7 +71,6 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
       await controller!.dispose();
     }
 
-    // Create a new camera controller
     final CameraController cameraController = CameraController(
       cameraDescription,
       ResolutionPreset.high,
@@ -82,47 +80,18 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
 
     controller = cameraController;
 
-    // If the controller is updated then update the UI.
     cameraController.addListener(() {
       if (mounted) setState(() {});
     });
 
     try {
       await cameraController.initialize();
-
-      // Reset flash when switching to front camera
-      if (cameraDescription.lensDirection == CameraLensDirection.front) {
-        setState(() {
-          isFlashOn = false;
-        });
-        await cameraController.setFlashMode(FlashMode.off);
-      }
-    } on CameraException catch (e) {
-      _showCameraException(e);
+    } catch (e) {
+      _showMessage('Error initializing camera controller: ${e.toString()}');
     }
 
     if (mounted) {
       setState(() {});
-    }
-  }
-
-  void _toggleFlash() async {
-    if (controller == null || !controller!.value.isInitialized) return;
-
-    if (controller!.description.lensDirection == CameraLensDirection.front) {
-      _showMessage('Flash not available on front camera');
-      return;
-    }
-
-    try {
-      final newFlashMode = isFlashOn ? FlashMode.off : FlashMode.torch;
-      await controller!.setFlashMode(newFlashMode);
-
-      setState(() {
-        isFlashOn = !isFlashOn;
-      });
-    } on CameraException catch (e) {
-      _showCameraException(e);
     }
   }
 
@@ -154,20 +123,122 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
       final XFile file = await cameraController.takePicture();
 
       setState(() {
-        imageFile = File(file.path);
+        imageFile = file;
         isCapturing = false;
       });
 
-      _showMessage('Photo captured!');
-    } on CameraException catch (e) {
-      _showCameraException(e);
-    } finally {
-      if (mounted) {
-        setState(() {
-          isCapturing = false;
-        });
-      }
+      _showImagePreview();
+
+    } catch (e) {
+      _showMessage('Error taking picture: ${e.toString()}');
+      setState(() {
+        isCapturing = false;
+      });
     }
+  }
+
+  Future<void> _uploadFromGallery() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+      if (pickedFile == null) {
+        return;
+      }
+
+      setState(() {
+        imageFile = pickedFile;
+      });
+
+      _showImagePreview();
+
+    } catch (e) {
+      _showMessage('Error picking image: ${e.toString()}');
+    }
+  }
+
+  void _showImagePreview() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(10),
+          child: Container(
+            width: double.infinity,
+            height: MediaQuery.of(context).size.height * 0.7,
+            decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Column(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(15),
+                      topRight: Radius.circular(15),
+                    ),
+                    child: _buildImageWidget(),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: const BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(15),
+                      bottomRight: Radius.circular(15),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _resetCamera();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _processUpload();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: const Text('Upload'),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _processUpload() {
+    _showMessage('Image uploaded successfully!');
+    _resetCamera();
   }
 
   void _resetCamera() {
@@ -176,23 +247,12 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
     });
   }
 
-  void _saveImage() {
-    // Implement image saving logic here
-    _showMessage('Image saved!');
-    // Navigate to image preview screen if needed
-    // Navigator.pushNamed(context, '/image-preview', arguments: imageFile);
-  }
-
   void _showMessage(String message) {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message))
     );
-  }
-
-  void _showCameraException(CameraException e) {
-    _showMessage('Error: ${e.code}\n${e.description}');
   }
 
   @override
@@ -205,68 +265,93 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: _buildBody(),
+      body: Stack(
+        children: [
+          _buildBody(),
+          _buildAlwaysVisibleUploadButton(),
+        ],
+      ),
       bottomNavigationBar: const CustomBottomNavigation(currentIndex: 1),
     );
   }
 
-  Widget _buildBody() {
-    // Show the captured image if available
-    if (imageFile != null) {
-      return _buildCapturedImageView();
+  Widget _buildAlwaysVisibleUploadButton() {
+    if (!kIsWeb && controller != null && controller!.value.isInitialized) {
+      return const SizedBox.shrink();
     }
 
-    // Show camera preview if controller is initialized
-    if (controller != null && controller!.value.isInitialized) {
+    return Positioned(
+      bottom: 20,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: GestureDetector(
+          onTap: _uploadFromGallery,
+          child: Container(
+            width: 70,
+            height: 70,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.3),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: const Icon(
+              Icons.file_upload,
+              color: Colors.white,
+              size: 40,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (!kIsWeb && controller != null && controller!.value.isInitialized) {
       return _buildCameraPreview();
     }
 
-    // Show loading indicator while camera initializes
     return _buildLoadingView();
   }
 
-  Widget _buildCapturedImageView() {
-    return Stack(
-      children: [
-        // Image preview
-        SizedBox.expand(
-          child: InteractiveViewer(
-            minScale: 0.5,
-            maxScale: 3.0,
-            child: Image.file(
-              imageFile!,
-              fit: BoxFit.contain,
-            ),
-          ),
-        ),
+  Widget _buildImageWidget() {
+    if (imageFile == null) {
+      return Container();
+    }
 
-        // Bottom controls
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            color: Colors.black.withOpacity(0.5),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildControlButton(
-                  icon: Icons.close,
-                  label: 'Discard',
-                  onPressed: _resetCamera,
-                ),
-                _buildControlButton(
-                  icon: Icons.check,
-                  label: 'Save',
-                  onPressed: _saveImage,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
+    if (kIsWeb) {
+      if (imageFile is XFile) {
+        return FutureBuilder<String>(
+          future: (imageFile as XFile).readAsString(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+              return Image.network(
+                snapshot.data!,
+                fit: BoxFit.contain,
+              );
+            } else {
+              return const Center(child: CircularProgressIndicator());
+            }
+          },
+        );
+      } else {
+        return const Center(child: Text('Unsupported image format', style: TextStyle(color: Colors.white)));
+      }
+    } else {
+      if (imageFile is XFile) {
+        return Image.file(
+          File((imageFile as XFile).path),
+          fit: BoxFit.contain,
+        );
+      } else if (imageFile is File) {
+        return Image.file(
+          imageFile,
+          fit: BoxFit.contain,
+        );
+      } else {
+        return const Center(child: Text('Unsupported image format', style: TextStyle(color: Colors.white)));
+      }
+    }
   }
 
   Widget _buildCameraPreview() {
@@ -276,7 +361,6 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
 
     return Stack(
       children: [
-        // Camera preview
         Transform.scale(
           scale: scale,
           alignment: Alignment.center,
@@ -284,32 +368,6 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
             child: CameraPreview(controller!),
           ),
         ),
-
-        // Top control bar
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            color: Colors.black.withOpacity(0.3),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                IconButton(
-                  icon: Icon(
-                    isFlashOn ? Icons.flash_on : Icons.flash_off,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                  onPressed: _toggleFlash,
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        // Bottom control bar
         Positioned(
           bottom: 0,
           left: 0,
@@ -320,35 +378,31 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                // Gallery button
                 IconButton(
                   icon: const Icon(
                     Icons.photo_library,
                     color: Colors.white,
                     size: 28,
                   ),
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/gallery');
-                  },
+                  onPressed: _uploadFromGallery,
                 ),
 
-                // Camera capture button
                 GestureDetector(
                   onTap: isCapturing ? null : _takePicture,
                   child: Container(
-                    width: 80,
-                    height: 80,
+                    width: 70,
+                    height: 70,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 4),
+                      border: Border.all(color: Colors.white, width: 3),
                       color: isCapturing ? Colors.grey : Colors.transparent,
                     ),
                     child: Center(
                       child: isCapturing
                           ? const CircularProgressIndicator(color: Colors.white)
                           : Container(
-                        width: 60,
-                        height: 60,
+                        width: 50,
+                        height: 50,
                         decoration: const BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
@@ -358,7 +412,6 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
                   ),
                 ),
 
-                // Switch camera button
                 IconButton(
                   icon: const Icon(
                     Icons.flip_camera_ios,
@@ -371,13 +424,6 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
             ),
           ),
         ),
-
-        // Camera guide grid
-        Positioned.fill(
-          child: CustomPaint(
-            painter: GridPainter(),
-          ),
-        ),
       ],
     );
   }
@@ -385,66 +431,24 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
   Widget _buildLoadingView() {
     return Container(
       color: Colors.black,
-      child: const Center(
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(color: Colors.white),
-            SizedBox(height: 20),
-            Text(
-              'Initializing camera...',
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
+            if (!kIsWeb)
+              const CircularProgressIndicator(color: Colors.white),
+            if (kIsWeb)
+              const Padding(
+                padding: EdgeInsets.all(20.0),
+                child: Text(
+                  'Camera is not available on web.\nPlease use the upload button.',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+              ),
           ],
         ),
       ),
     );
   }
-
-  Widget _buildControlButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onPressed
-  }) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          icon: Icon(icon, color: Colors.white, size: 28),
-          onPressed: onPressed,
-        ),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white, fontSize: 12),
-        ),
-      ],
-    );
-  }
-}
-
-// Custom painter for camera guide grid
-class GridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withOpacity(0.3)
-      ..strokeWidth = 1;
-
-    // Horizontal lines
-    final double horizontalStep = size.height / 3;
-    for (int i = 1; i < 3; i++) {
-      final double y = horizontalStep * i;
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-
-    // Vertical lines
-    final double verticalStep = size.width / 3;
-    for (int i = 1; i < 3; i++) {
-      final double x = verticalStep * i;
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
