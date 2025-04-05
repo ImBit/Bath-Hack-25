@@ -729,7 +729,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
         tooltip: 'Take Photo',
         child: const Icon(Icons.camera_alt),
       ),
-      bottomNavigationBar: const CustomBottomNavigation(currentIndex: 0),
+      bottomNavigationBar: const CustomBottomNavigation(currentIndex: 4),
     );
   }
 
