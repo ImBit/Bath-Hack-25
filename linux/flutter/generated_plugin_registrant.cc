@@ -6,6 +6,7 @@
 
 #include "generated_plugin_registrant.h"
 
+#include <file_selector_linux/file_selector_plugin.h>
 
 void fl_register_plugins(FlPluginRegistry* registry) {
   g_autoptr(FlPluginRegistrar) file_selector_linux_registrar =
