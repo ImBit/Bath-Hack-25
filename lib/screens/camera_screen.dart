@@ -1,8 +1,12 @@
 import 'dart:io';
+import 'package:animal_conservation/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
+import 'package:permission_handler/permission_handler.dart';
 import '../widgets/bottom_navigation.dart';
 
 class CameraScreen extends StatefulWidget {
@@ -19,12 +23,35 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
   bool isCapturing = false;
   int selectedCameraIndex = 0;
   bool showingPreview = false;
+  String _savedImagePath = '';
+
+  // Directory where we'll save our images
+  Directory? _appDirectory;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initializeCamera();
+    _initAppDirectory();
+  }
+
+  Future<void> _initAppDirectory() async {
+    try {
+      // Get the app's documents directory
+      final directory = await getApplicationDocumentsDirectory();
+      final imagesDir = Directory('${directory.path}/animal_images');
+
+      // Create the directory if it doesn't exist
+      if (!(await imagesDir.exists())) {
+        await imagesDir.create(recursive: true);
+      }
+
+      _appDirectory = imagesDir;
+      print("App directory initialized: ${imagesDir.path}");
+    } catch (e) {
+      print("Error initializing app directory: $e");
+    }
   }
 
   @override
@@ -46,6 +73,22 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
       cameraController.dispose();
     } else if (state == AppLifecycleState.resumed) {
       _onNewCameraSelected(cameras[selectedCameraIndex]);
+    }
+  }
+
+  Future<void> _requestStoragePermissions() async {
+    if (kIsWeb) return; // No need for permissions on web
+
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.storage,
+      if (Platform.isAndroid && await Permission.manageExternalStorage.isGranted)
+        Permission.manageExternalStorage,
+    ].request();
+
+    bool allGranted = statuses.values.every((status) => status.isGranted);
+
+    if (!allGranted) {
+      _showMessage('Storage permission is required to save images');
     }
   }
 
@@ -223,7 +266,7 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
                             borderRadius: BorderRadius.circular(30),
                           ),
                         ),
-                        child: const Text('Upload'),
+                        child: const Text('Save'),
                       ),
                     ],
                   ),
@@ -236,9 +279,104 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
     );
   }
 
-  void _processUpload() {
-    _showMessage('Image uploaded successfully!');
-    _resetCamera();
+  Future<void> _processUpload() async {
+    if (imageFile == null || _appDirectory == null) {
+      _showMessage('Unable to save image');
+      return;
+    }
+
+    try {
+      // Request storage permissions first
+      await _requestStoragePermissions();
+
+      // Generate a unique filename with timestamp
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final originalFilename = imageFile is XFile
+          ? path.basename((imageFile as XFile).path)
+          : 'animal_$timestamp.jpg';
+
+      final fileName = 'animal_${timestamp}_${originalFilename}';
+      final savedFilePath = path.join(_appDirectory!.path, fileName);
+
+      // Copy the file to our app's directory
+      File sourceFile;
+      if (imageFile is XFile) {
+        sourceFile = File((imageFile as XFile).path);
+      } else if (imageFile is File) {
+        sourceFile = imageFile;
+      } else {
+        throw Exception('Unsupported image type');
+      }
+
+      // Copy the file
+      final savedFile = await sourceFile.copy(savedFilePath);
+
+      setState(() {
+        _savedImagePath = savedFilePath;
+      });
+
+      _showMessage('Image saved successfully at: $savedFilePath');
+
+      // Show options dialog
+      _showSavedImageOptions(savedFile);
+
+    } catch (e) {
+      _showMessage('Error saving image: $e');
+    } finally {
+      _resetCamera();
+    }
+  }
+
+  void _showSavedImageOptions(File savedFile) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Image Saved Successfully'),
+          content: SingleChildScrollView( // Wrap in SingleChildScrollView
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // Keep this to minimize height
+              children: [
+                // Fix 1: Add constraints to the image
+                Container(
+                  constraints: BoxConstraints(
+                    maxHeight: 200,
+                    maxWidth: MediaQuery.of(context).size.width * 0.6,
+                  ),
+                  child: ClipRRect( // Optional: adds rounded corners
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(
+                      savedFile,
+                      fit: BoxFit.contain, // Use contain instead of cover
+                      // Don't specify height/width here, let Container constrain it
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text('Saved to: ${path.basename(savedFile.path)}'),
+                const SizedBox(height: 16),
+                const Text('What would you like to do next?'),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pushReplacementNamed(context, AppRoutes.gallery);
+              },
+              child: const Text('Go to Gallery'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Take Another Photo'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _resetCamera() {

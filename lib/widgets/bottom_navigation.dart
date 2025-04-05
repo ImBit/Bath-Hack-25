@@ -1,3 +1,4 @@
+import 'package:animal_conservation/screens/animal_info_screen.dart';
 import 'package:animal_conservation/screens/camera_screen.dart';
 import 'package:animal_conservation/screens/gallery_screen.dart';
 import 'package:animal_conservation/screens/journal_screen.dart';
@@ -26,7 +27,7 @@ class CustomBottomNavigation extends StatelessWidget {
         if (index == currentIndex) return;
 
         final screens = [
-          const JournalView(),
+          const AnimalInfoScreen(),
           const JournalView(),
           const CameraScreen(),
           const ProfileScreen(),

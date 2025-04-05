@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../services/api_service.dart';
+import '../widgets/bottom_navigation.dart';
 
 class GalleryScreen extends StatefulWidget {
   const GalleryScreen({super.key});
@@ -188,7 +189,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Rest of your widget build method remains the same
     return Scaffold(
       appBar: AppBar(
         title: const Text('Animal Gallery'),
@@ -334,6 +334,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
         tooltip: 'Pick Images',
         child: const Icon(Icons.add_photo_alternate),
       ),
+      bottomNavigationBar: const CustomBottomNavigation(currentIndex: 4), // Add this line
     );
   }
 }
