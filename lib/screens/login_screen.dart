@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../routes/app_routes.dart';
+import 'package:animal_conservation/database/database_management.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,11 +15,14 @@ class _LoginScreenState extends State<LoginScreen> {
   String _username = "";
   String? _passwordError;
   String _password = "";
+  final firestoreService = FirestoreService();
 
   void _validateUsername() {
     setState(() {
       if (_username.isEmpty) {
         _usernameError = "Username cannot be empty";
+      } else if (firestoreService.login(_username, _password) == Future.value("Username does not exist")) {
+        _usernameError = "Username does not exist";
       } else {
         _usernameError = null;
       }
@@ -26,9 +30,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _validatePassword() {
-    setState(() {
+    setState(() async {
       if (_password.isEmpty) {
         _passwordError = "Password cannot be empty";
+      } else if (firestoreService.login(_username, _password) == Future.value("Incorrect password")) {
+        _passwordError = "Incorrect password";
       } else {
         _passwordError = null;
       }

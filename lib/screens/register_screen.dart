@@ -1,7 +1,10 @@
+import 'package:animal_conservation/database/objects/user_object.dart';
 import 'package:flutter/material.dart';
 import '../routes/app_routes.dart';
+import 'package:animal_conservation/database/database_management.dart';
 
 class RegisterScreen extends StatefulWidget {
+
   const RegisterScreen({super.key});
 
   @override
@@ -15,6 +18,7 @@ class _LoginScreenState extends State<RegisterScreen> {
   String? _passwordError;
   String _password = "";
   final RegExp _passwordVal = RegExp(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).+$');
+  final firestoreService = FirestoreService();
 
   void _validateUsername() {
     setState(() {
@@ -22,6 +26,8 @@ class _LoginScreenState extends State<RegisterScreen> {
         _passwordError = null;
       } else if (_username.isEmpty) {
         _usernameError = "Username cannot be empty";
+      } else if (!await firestoreService.isUsernameAvailable(_username)) {
+        _usernameError = "Username already exists";
       } else {
         _usernameError = null;
       }
@@ -47,7 +53,8 @@ class _LoginScreenState extends State<RegisterScreen> {
     _validatePassword();
 
     if (_usernameError == null && _passwordError == null) {
-      // Save details to db.
+      firestoreService.saveUser(UserObject(username: _username, password: _password));
+
       Navigator.pushReplacementNamed(context, AppRoutes.camera);
     }
   }
