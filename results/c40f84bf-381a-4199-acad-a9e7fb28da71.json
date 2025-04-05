@@ -1,0 +1,40 @@
+{
+    "predictions": [
+        {
+            "filepath": "uploaded_images/c40f84bf-381a-4199-acad-a9e7fb28da71/1000000032.png",
+            "classifications": {
+                "classes": [
+                    "aca65aaa-8c6d-4b69-94de-842b08b13bd6;mammalia;cetartiodactyla;bovidae;bos;taurus;domestic cattle",
+                    "f8db21f0-6b79-4444-8be4-b87906d56e6a;aves;pelecaniformes;ardeidae;ardea;albus;great egret",
+                    "f1856211-cfb7-4a5b-9158-c0f72fd09ee6;;;;;;blank",
+                    "990ae9dd-7a59-4344-afcb-1b7b21368000;mammalia;primates;hominidae;homo;sapiens;human",
+                    "b1352069-a39c-4a84-a949-60044271c0c1;aves;;;;;bird"
+                ],
+                "scores": [
+                    0.49582985043525696,
+                    0.075224369764328,
+                    0.07300611585378647,
+                    0.05657617747783661,
+                    0.030405385419726372
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.7647867798805237,
+                    "bbox": [
+                        0.00625002384185791,
+                        0.027027040719985962,
+                        0.9781249761581421,
+                        0.9324324131011963
+                    ]
+                }
+            ],
+            "prediction": "1f689929-883d-4dae-958c-3d57ab5b6c16;;;;;;animal",
+            "prediction_score": 0.6580357830971479,
+            "prediction_source": "classifier+rollup_to_kingdom",
+            "model_version": "4.0.0a"
+        }
+    ]
+}
