@@ -1,4 +1,6 @@
 import 'package:animal_conservation/screens/camera_screen.dart';
+import 'package:animal_conservation/screens/journal_screen.dart';
+import 'package:animal_conservation/screens/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'routes/app_routes.dart';
 
@@ -13,9 +15,10 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const CameraScreen(),
+      home: const RegisterScreen(),
       routes: {
-        '/camera': (context) => const CameraScreen(),
+        AppRoutes.register: (context) => const RegisterScreen(),
+        AppRoutes.camera: (context) => const CameraScreen(),
       },
     );
   }
