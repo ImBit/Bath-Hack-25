@@ -13,6 +13,13 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.6
   intl: ^0.18.1
+  camera: ^0.10.5+9
+  path: ^1.8.3
+  path_provider: ^2.1.2
+  image_picker: ^1.0.7
+  tflite: ^1.1.2
+  provider: ^6.1.1
+  permission_handler: ^11.3.0
 
 dev_dependencies:
   flutter_test:
@@ -21,7 +28,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
-  # Add assets if needed
-  # assets:
-  #   - assets/images/
