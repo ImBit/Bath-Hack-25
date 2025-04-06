@@ -1,0 +1,112 @@
+{
+    "predictions": [
+        {
+            "filepath": "uploaded_images/8540824d-c03c-4835-92b7-c7509e6d3ae2/animal_1743888299718_CAP7417933471532509023.jpg",
+            "classifications": {
+                "classes": [
+                    "f1856211-cfb7-4a5b-9158-c0f72fd09ee6;;;;;;blank",
+                    "aca65aaa-8c6d-4b69-94de-842b08b13bd6;mammalia;cetartiodactyla;bovidae;bos;taurus;domestic cattle",
+                    "09fbf931-bbf0-4959-9df6-1082db578281;mammalia;cetartiodactyla;bovidae;connochaetes;taurinus;common wildebeest",
+                    "dd39bbd5-077c-482e-9d33-bd176116c870;mammalia;perissodactyla;equidae;equus;quagga;plains zebra",
+                    "436ddfdd-bc43-44c3-a25d-34671d3430a0;mammalia;carnivora;ursidae;ursus;americanus;american black bear"
+                ],
+                "scores": [
+                    0.9906545281410217,
+                    0.004463355988264084,
+                    0.0007481935899704695,
+                    0.00041561905527487397,
+                    0.000384273414965719
+                ]
+            },
+            "detections": [
+                {
+                    "category": "3",
+                    "label": "vehicle",
+                    "conf": 0.012776673771440983,
+                    "bbox": [
+                        0.002777785062789917,
+                        0.00390625,
+                        0.9972222447395325,
+                        0.944531261920929
+                    ]
+                }
+            ],
+            "prediction": "f1856211-cfb7-4a5b-9158-c0f72fd09ee6;;;;;;blank",
+            "prediction_score": 0.9906545281410217,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        },
+        {
+            "filepath": "uploaded_images/8540824d-c03c-4835-92b7-c7509e6d3ae2/animal_1743888304134_1000000034.jpg",
+            "classifications": {
+                "classes": [
+                    "3d80f1d6-b1df-4966-9ff4-94053c7a902a;mammalia;carnivora;canidae;canis;familiaris;domestic dog",
+                    "d3d5325f-b055-4925-b875-5cd28af54215;mammalia;carnivora;canidae;canis;;canis species",
+                    "189cdd40-b83d-48d1-a4fa-e43a104f2a23;mammalia;cetartiodactyla;bovidae;capra;aegagrus hircus;domestic goat",
+                    "9212982e-8a58-4775-a6ac-e9a43110d8f5;mammalia;carnivora;felidae;felis;catus;domestic cat",
+                    "e237b8d3-997f-4f3b-8736-8c3958f8182c;aves;passeriformes;corvidae;corvus;;corvus species"
+                ],
+                "scores": [
+                    0.9771695733070374,
+                    0.01779414527118206,
+                    0.003022237680852413,
+                    0.0004716877010650933,
+                    0.00018942129099741578
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.8303965926170349,
+                    "bbox": [
+                        0.19999998807907104,
+                        0.18045112490653992,
+                        0.7947368621826172,
+                        0.6992481350898743
+                    ]
+                }
+            ],
+            "prediction": "3d80f1d6-b1df-4966-9ff4-94053c7a902a;mammalia;carnivora;canidae;canis;familiaris;domestic dog",
+            "prediction_score": 0.9771695733070374,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        },
+        {
+            "filepath": "uploaded_images/8540824d-c03c-4835-92b7-c7509e6d3ae2/animal_1743889837427_CAP5186341251052934880.jpg",
+            "classifications": {
+                "classes": [
+                    "f1856211-cfb7-4a5b-9158-c0f72fd09ee6;;;;;;blank",
+                    "aca65aaa-8c6d-4b69-94de-842b08b13bd6;mammalia;cetartiodactyla;bovidae;bos;taurus;domestic cattle",
+                    "09fbf931-bbf0-4959-9df6-1082db578281;mammalia;cetartiodactyla;bovidae;connochaetes;taurinus;common wildebeest",
+                    "dd39bbd5-077c-482e-9d33-bd176116c870;mammalia;perissodactyla;equidae;equus;quagga;plains zebra",
+                    "436ddfdd-bc43-44c3-a25d-34671d3430a0;mammalia;carnivora;ursidae;ursus;americanus;american black bear"
+                ],
+                "scores": [
+                    0.9906545281410217,
+                    0.004463355988264084,
+                    0.000748193240724504,
+                    0.00041561867692507803,
+                    0.0003842735895887017
+                ]
+            },
+            "detections": [
+                {
+                    "category": "3",
+                    "label": "vehicle",
+                    "conf": 0.012776673771440983,
+                    "bbox": [
+                        0.002777785062789917,
+                        0.00390625,
+                        0.9972222447395325,
+                        0.944531261920929
+                    ]
+                }
+            ],
+            "prediction": "f1856211-cfb7-4a5b-9158-c0f72fd09ee6;;;;;;blank",
+            "prediction_score": 0.9906545281410217,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        }
+    ]
+}

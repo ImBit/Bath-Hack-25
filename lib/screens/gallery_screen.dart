@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:animal_conservation/services/user_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_file_dialog/flutter_file_dialog.dart';
@@ -377,6 +378,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
         });
 
         _logDebug("Results parsed: ${labels.length} labels");
+
+        // Now save the analyzed images to database
+        await _saveAnalyzedImagesToDB();
       } else {
         _logDebug("Still processing...");
       }
@@ -472,6 +476,152 @@ class _GalleryScreenState extends State<GalleryScreen> {
       scaffoldMessenger.showSnackBar(SnackBar(content: Text(message)));
     }
   }
+
+  Future<void> _saveAnalyzedImagesToDB() async {
+    if (!_analysisComplete || _appImages.isEmpty || _animalLabels.isEmpty) {
+      _logDebug("No analyzed images to save");
+      return;
+    }
+
+    _logDebug("Saving ${_appImages.length} analyzed images to database");
+
+    try {
+      // Use the public getter for current user
+      final currentUser = UserManager.getCurrentUser;
+
+      if (currentUser == null || currentUser.id == null) {
+        _logDebug("User not logged in or missing ID, using default 'ImBit' username");
+
+        // Try to find the user by username
+        final userFromDB = await FirestoreService.getUserByUsername("ImBit");
+
+        if (userFromDB == null || userFromDB.id == null) {
+          _logDebug("Failed to find user 'ImBit' in database");
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Please log in to save images to database'))
+            );
+          }
+          return;
+        }
+
+        // Use the user from the database
+        final String userId = userFromDB.id!;
+        _logDebug("Using database user: $userId");
+
+        await _processImageSaving(userId);
+      } else {
+        // User is logged in
+        final String userId = currentUser.id!;
+        _logDebug("User logged in: $userId");
+
+        await _processImageSaving(userId);
+      }
+    } catch (e) {
+      _logDebug("Error saving analyzed images to database: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to save to database: $e'))
+        );
+      }
+    }
+  }
+
+// Move the image saving logic to a separate method to avoid code duplication
+  Future<void> _processImageSaving(String userId) async {
+    int savedCount = 0;
+
+    // For each image that has an animal label
+    for (var imageFile in _appImages) {
+      final fileName = path.basename(imageFile.path);
+      final animalLabel = _getAnimalLabel(imageFile);
+
+      // Skip images that weren't successfully analyzed
+      if (animalLabel == 'Not analyzed') {
+        _logDebug("Skipping image without analysis: $fileName");
+        continue;
+      }
+
+      // Get location data using LocationManager
+      List<double>? locationData;
+      try {
+        final position = await LocationManager().getPosition();
+        if (position != null) {
+          locationData = [position.latitude, position.longitude];
+        }
+      } catch (e) {
+        _logDebug("Error getting location: $e");
+      }
+
+      // Get current date and time in UTC format
+      String currentDateTime = UserManager.getCurrentUtcDateTimeFormatted();
+      _logDebug("Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): $currentDateTime");
+      _logDebug("Current User's Login: ${UserManager.getCurrentUser?.username ?? 'None'}");
+
+      // Create photo object with the correct structure
+      final photoObject = PhotoObject(
+        id: null,
+        userId: userId,
+        photoPath: imageFile.path,
+        timestamp: DateTime.now(),
+        location: locationData,
+        animalClassification: null, // Will be updated after animal is saved
+        encryptedImageData: null,
+      );
+
+      // Check if animal already exists in database
+      AnimalObject? existingAnimal;
+      try {
+        existingAnimal = await FirestoreService.getAnimalByName(animalLabel);
+      } catch (e) {
+        _logDebug("Error finding animal by name: $e");
+      }
+
+      // If animal doesn't exist, create new one
+      if (existingAnimal == null) {
+        existingAnimal = AnimalObject(
+          id: null,
+          name: animalLabel,
+          species: animalLabel,
+          description: "Detected on $currentDateTime UTC",
+          encryptedImageData: null,
+        );
+        _logDebug("Created new animal object: ${existingAnimal.name}");
+      }
+
+      // Save photo to database
+      String? photoId;
+      try {
+        photoId = await FirestoreService.savePhoto(photoObject);
+
+        if (photoId != null && photoId.isNotEmpty) {
+          // Link photo to the animal
+          final success = await FirestoreService.linkPhotoToAnimal(photoId, existingAnimal);
+
+          if (success) {
+            _logDebug("Successfully saved and linked: $fileName -> $animalLabel");
+            savedCount++;
+          } else {
+            _logDebug("Failed to link photo to animal");
+          }
+        } else {
+          _logDebug("Failed to save photo: $fileName");
+        }
+      } catch (e) {
+        _logDebug("Error during save/link process: $e");
+      }
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Saved $savedCount analyzed images to database'))
+      );
+    }
+
+    _logDebug("Database save complete: $savedCount images saved");
+  }
+
 
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,7 @@
 import 'package:animal_conservation/database/objects/user_object.dart';
+import 'package:animal_conservation/services/user_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 import '../routes/app_routes.dart';
 import 'package:animal_conservation/database/database_management.dart';
 
@@ -18,6 +20,7 @@ class _LoginScreenState extends State<RegisterScreen> {
   String? _passwordError;
   String _password = "";
   final RegExp _passwordVal = RegExp(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).+$');
+  final Uuid _uuid = Uuid();
 
   Future<void> _validateUsername() async {
     if (_username.toLowerCase() == "dev") {
@@ -65,7 +68,13 @@ class _LoginScreenState extends State<RegisterScreen> {
 
     if (_usernameError == null && (_passwordError == null || _username.toLowerCase() == "dev")) {
       if (_username.toLowerCase() != "dev") {
-        await FirestoreService.saveUser(UserObject(username: _username, password: _password));
+        UserObject user = UserObject(
+          id: _uuid.v4(),
+          username: _username,
+          password: _password,
+        );
+        UserManager.setCurrentUser(user);
+        await FirestoreService.saveUser(user);
       }
       Navigator.pushReplacementNamed(context, AppRoutes.camera);
     }
