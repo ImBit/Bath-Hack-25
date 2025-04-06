@@ -25,6 +25,7 @@ dependencies:
   latlong2: ^0.9.1
   geolocator: ^10.0.0
   flutter_markdown_plus: ^1.0.3
+  flutter_svg_provider: ^1.0.7
 
 dev_dependencies:
   flutter_test:
@@ -41,3 +42,6 @@ flutter:
     - assets/fox.webp
     - assets/whale.jpg
     - assets/images/default_profile.png
+    - assets/images/star_pattern.svg
+    - assets/images/star_pattern.png
+    - assets/images/dot.png

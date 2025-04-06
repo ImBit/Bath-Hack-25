@@ -52,12 +52,13 @@ class JournalView extends StatefulWidget {
   State<JournalView> createState() => _JournalViewState();
 }
 
-class _JournalViewState extends State<JournalView> {
+class _JournalViewState extends State<JournalView>
+    with SingleTickerProviderStateMixin {
   final List<JournalEntry> entries = [
     JournalEntry(
         name: 'Pigeon',
-        image:
-            const NetworkImage('https://static.vecteezy.com/system/resources/previews/010/345/372/non_2x/pigeon-bird-color-icon-illustration-vector.jpg'),
+        image: const NetworkImage(
+            'https://static.vecteezy.com/system/resources/previews/010/345/372/non_2x/pigeon-bird-color-icon-illustration-vector.jpg'),
         level: 'Level 1',
         currentProgress: 50,
         maxProgress: 100,
@@ -66,8 +67,7 @@ class _JournalViewState extends State<JournalView> {
             'Feared by crumbs, respected by couriers, the **rock pigeon** (*Columba livia*) is a master of the urban biome. Descended from wild cliff-dwelling ancestors, it now commands the skies of cityscapes worldwide, nesting on ledges and high-rises as if they were ancient seaside cliffs.\n\nWith a built-in biological compass, it can sense Earth’s magnetic fields and the position of the sun, allowing it to navigate home from over 1,000 miles away—a skill so precise, humans once relied on it in war.'),
     JournalEntry(
         name: 'Fox',
-        image:
-            const AssetImage('assets/fox.webp'),
+        image: const AssetImage('assets/fox.webp'),
         level: 'Level 2',
         currentProgress: 40,
         maxProgress: 50,
@@ -76,8 +76,7 @@ class _JournalViewState extends State<JournalView> {
             'Slinking through twilight like a living shadow, the **red fox** (*Vulpes vulpes*) is nature\'s stealth specialist. With ears fine-tuned to the rustle of a mouse beneath snow and paws padded for silent pursuit, it hunts with uncanny precision—sometimes leaping high into the air to pounce with acrobatic flair.\n\nFound from Arctic tundra to suburban sprawl, this adaptable creature has the widest range of any wild canid, thriving anywhere stealth and cunning can earn a meal.'),
     JournalEntry(
         name: 'Humpback Whale',
-        image:
-            const AssetImage('assets/whale.jpg'),
+        image: const AssetImage('assets/whale.jpg'),
         level: 'Level 1',
         currentProgress: 1,
         maxProgress: 10,
@@ -87,149 +86,281 @@ class _JournalViewState extends State<JournalView> {
     // Add more entries as needed
   ];
 
+  late Animation<double> animation;
+  late AnimationController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = AnimationController(
+        duration: const Duration(seconds: 100000), vsync: this);
+    animation = Tween<double>(begin: 0, end: 4000).animate(controller)
+      ..addListener(() {
+        setState(() {
+          // The state that has changed here is the animation object's value.
+        });
+        if (controller.isCompleted) {
+          controller.repeat();
+        }
+      });
+    controller.forward();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Journal'),
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        title: const Text(
+          'Journal',
+          // style: TextStyle(
+          //   fontWeight: FontWeight.bold,
+          //   color: Colors.white,
+          //   shadows: 
+          // ),
+        ),
+        backgroundColor: Color.fromRGBO(255, 166, 0, 1),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: ListView.builder(
-            itemCount: entries.length, // Number of entries to display
-            itemBuilder: (context, index) {
-              final entry = entries[index];
-              return GestureDetector(
-                onTap: () {
-                  showDialog<String>(
-                    context: context,
-                    builder: (BuildContext context) => Dialog(
-                      insetPadding: const EdgeInsets.only(
-                        left: 20,
-                        right: 20,
-                        top: 20,
-                        bottom: 100,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            AnimalDetails(entry: entry),
-                            const SizedBox(height: 8),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              // Type: Bird
-                              child: MarkdownBody(
-                                data: 'Type: **Bird**',
-                                styleSheet: MarkdownStyleSheet(
-                                  p: const TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ),
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment.center,
+                radius: 0.85,
+                colors: [
+                  Color.fromRGBO(249, 181, 51, 1), // light gold
+                  Color.fromRGBO(215, 147, 23, 1), // dark gold
+                ],
+              ),
+            ),
+            child:
+                const SizedBox.expand(), // Makes the container fill the parent
+          ),
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/star_pattern.png',
+              repeat: ImageRepeat.repeat,
+              opacity: const AlwaysStoppedAnimation(0.2),
+              alignment: FractionalOffset(animation.value, animation.value / 4),
+            ),
+          ),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: ListView.builder(
+                itemCount: entries.length, // Number of entries to display
+                itemBuilder: (context, index) {
+                  final entry = entries[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: GestureDetector(
+                      onTap: () {
+                        showDialog<String>(
+                          context: context,
+                          builder: (BuildContext context) => Dialog(
+                            // backgroundColor: Color.fromRGBO(255, 255, 255, 0.8),
+                            insetPadding: const EdgeInsets.only(
+                              left: 20,
+                              right: 20,
+                              top: 70,
+                              bottom: 110,
                             ),
-                            const Divider(),
-                            Expanded(
-                              child: RawScrollbar(
-                                child: ListView(children: [
-                                  MarkdownBody(
-                                    data: entry.description,
-                                    // styleSheet: MarkdownStyleSheet(
-                                    //   p: const TextStyle(
-                                    //     fontSize: 16,
-                                    //     color: Colors.black,
-                                    //   ),
-                                    // ),
-                                  ),
-                                  const Divider(),
-                                  const Text(
-                                    'Recent sightings',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                            child: Stack(
+                              children: [
+                                Positioned.fill(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Image.asset(
+                                      'assets/images/dot.png',
+                                      repeat: ImageRepeat.repeat,
                                     ),
                                   ),
-                                  Card(
-                                    color: Colors.grey[300],
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(12),
-                                      child: Row(
-                                        children: [
-                                          const Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  Icon(Icons.calendar_month),
-                                                  SizedBox(width: 8),
-                                                  Text("1 Apr 2025 (4 days ago)"),
-                                                ],
-                                              ),
-                                              SizedBox(height: 8),
-                                              Row(
-                                                children: [
-                                                  Icon(Icons.location_on),
-                                                  SizedBox(width: 8),
-                                                  Text("University of Bath"),
-                                                ],
-                                              ),
-                                            ],
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      AnimalDetails(entry: entry),
+                                      const SizedBox(height: 8),
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        // Type: Bird
+                                        child: MarkdownBody(
+                                          data: 'Type: **Bird**',
+                                          styleSheet: MarkdownStyleSheet(
+                                            p: const TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.black,
+                                            ),
                                           ),
-                                          Expanded(
-                                            child: Align(
-                                              alignment: Alignment.centerRight,
-                                              child: ClipRRect(
-                                                borderRadius: BorderRadius.circular(8),
-                                                child: const Image(
-                                                  image: AssetImage('assets/pigeon.webp'),
-                                                  height: 75,
-                                                  width: 75,
-                                                  fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                      const Divider(),
+                                      Expanded(
+                                        child: RawScrollbar(
+                                          child: ListView(children: [
+                                            MarkdownBody(
+                                              data: entry.description,
+                                              // styleSheet: MarkdownStyleSheet(
+                                              //   p: const TextStyle(
+                                              //     fontSize: 16,
+                                              //     color: Colors.black,
+                                              //   ),
+                                              // ),
+                                            ),
+                                            const Divider(),
+                                            const Text(
+                                              'Recent sightings',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            Card(
+                                              color: Colors.grey[300],
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(12),
+                                                child: Row(
+                                                  children: [
+                                                    const Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Row(
+                                                          children: [
+                                                            Icon(Icons
+                                                                .calendar_month),
+                                                            SizedBox(width: 8),
+                                                            Text(
+                                                                "1 Apr 2025 (4 days ago)"),
+                                                          ],
+                                                        ),
+                                                        SizedBox(height: 8),
+                                                        Row(
+                                                          children: [
+                                                            Icon(Icons
+                                                                .location_on),
+                                                            SizedBox(width: 8),
+                                                            Text(
+                                                                "University of Bath"),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    Expanded(
+                                                      child: Align(
+                                                        alignment: Alignment
+                                                            .centerRight,
+                                                        child: ClipRRect(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(8),
+                                                          child: const Image(
+                                                            image: AssetImage(
+                                                                'assets/pigeon.webp'),
+                                                            height: 75,
+                                                            width: 75,
+                                                            fit: BoxFit.cover,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                        ],
+                                          ]),
+                                        ),
                                       ),
-                                    ),
-                                  ),                                    
-                                ]),
-                              ),
+                                      const SizedBox(height: 16),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('Close'),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 16),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: const Text('Close'),
+                          ),
+                        );
+                      },
+                      child: Card(
+                        color: Colors.grey[300],
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: const Alignment(0, 2),
+                              stops: const [
+                                0,
+                                0.125,
+                                0.125,
+                                0.25,
+                                0.25,
+                                0.375,
+                                0.375,
+                                0.5,
+                                0.5,
+                                0.625,
+                                0.625,
+                                0.75,
+                                0.75,
+                                0.875,
+                                0.875,
+                                1,
+                              ],
+                              colors: [
+                                Colors.grey[300]!,
+                                Colors.grey[300]!,
+                                Colors.grey[200]!,
+                                Colors.grey[200]!,
+                                Colors.grey[300]!,
+                                Colors.grey[300]!,
+                                Colors.grey[200]!,
+                                Colors.grey[200]!,
+                                Colors.grey[300]!,
+                                Colors.grey[300]!,
+                                Colors.grey[200]!,
+                                Colors.grey[200]!,
+                                Colors.grey[300]!,
+                                Colors.grey[300]!,
+                                Colors.grey[200]!,
+                                Colors.grey[200]!,
+                              ],
+                              tileMode: TileMode.repeated,
                             ),
-                          ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: AnimalDetails(
+                              entry: entry,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   );
                 },
-                child: Card(
-                  color: Colors.grey[300],
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: AnimalDetails(
-                      entry: entry,
-                    ),
-                  ),
-                ),
-              );
-            },
+              ),
+            ),
           ),
-        ),
+        ],
       ),
       bottomNavigationBar: const CustomBottomNavigation(currentIndex: 1),
     );
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
   }
 }
 
