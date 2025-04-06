@@ -1,0 +1,87 @@
+{
+    "predictions": [
+        {
+            "filepath": "uploaded_images/419e939b-4b1e-43a9-ad28-a2412f668f61/animal_1743930701272_1000000039.jpg",
+            "classifications": {
+                "classes": [
+                    "9212982e-8a58-4775-a6ac-e9a43110d8f5;mammalia;carnivora;felidae;felis;catus;domestic cat",
+                    "bb2c0674-6b2b-430f-8762-df186ec71098;mammalia;carnivora;felidae;felis;;felis species",
+                    "96debe9f-7452-42c9-87ae-2e6b37f78025;mammalia;carnivora;felidae;felis;silvestris;wild cat",
+                    "b1352069-a39c-4a84-a949-60044271c0c1;aves;;;;;bird",
+                    "df8514b0-10a5-411f-8ed6-0f415e8153a3;mammalia;carnivora;felidae;;;cat family"
+                ],
+                "scores": [
+                    0.9981939196586609,
+                    0.0005587269552052021,
+                    0.0004470453131943941,
+                    0.0003162846842315048,
+                    0.00012048602366121486
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.8985188007354736,
+                    "bbox": [
+                        0.33818183839321136,
+                        0.06010931730270386,
+                        0.294545441865921,
+                        0.9016393423080444
+                    ]
+                },
+                {
+                    "category": "2",
+                    "label": "human",
+                    "conf": 0.015182550996541977,
+                    "bbox": [
+                        0.0,
+                        0.27868854999542236,
+                        0.13818182051181793,
+                        0.5081967115402222
+                    ]
+                }
+            ],
+            "prediction": "9212982e-8a58-4775-a6ac-e9a43110d8f5;mammalia;carnivora;felidae;felis;catus;domestic cat",
+            "prediction_score": 0.9981939196586609,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        },
+        {
+            "filepath": "uploaded_images/419e939b-4b1e-43a9-ad28-a2412f668f61/animal_1743930717963_1000000036.jpg",
+            "classifications": {
+                "classes": [
+                    "04eda76f-c0e7-4e9e-85c3-5b1542db2915;amphibia;anura;bufonidae;rhinella;marina;cane toad",
+                    "fa3a7f4a-912a-4ff9-b82c-95b27f3d39fb;mammalia;perissodactyla;rhinocerotidae;diceros;bicornis;black rhinoceros",
+                    "308c4f30-a4c5-42bd-87f4-fa7932ac2b17;mammalia;cetartiodactyla;tragulidae;moschiola;indica;indian chevrotain",
+                    "2ae71e77-7d1f-4192-b2f3-bca9fea14762;mammalia;lagomorpha;leporidae;lepus;granatensis;granada hare",
+                    "a4f23daa-a66d-483c-94d4-3132aea33283;mammalia;artiodactyla;camelidae;camelus;dromedarius;dromedary camel"
+                ],
+                "scores": [
+                    0.47723305225372314,
+                    0.033728521317243576,
+                    0.025114186108112335,
+                    0.01721031591296196,
+                    0.007589963264763355
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.9655820727348328,
+                    "bbox": [
+                        0.15000000596046448,
+                        0.3400000035762787,
+                        0.6366666555404663,
+                        0.5350000262260437
+                    ]
+                }
+            ],
+            "prediction": "1f689929-883d-4dae-958c-3d57ab5b6c16;;;;;;animal",
+            "prediction_score": 0.9655820727348328,
+            "prediction_source": "detector",
+            "model_version": "4.0.0a"
+        }
+    ]
+}

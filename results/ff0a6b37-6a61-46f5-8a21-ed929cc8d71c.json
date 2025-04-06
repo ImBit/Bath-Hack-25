@@ -1,0 +1,76 @@
+{
+    "predictions": [
+        {
+            "filepath": "uploaded_images/ff0a6b37-6a61-46f5-8a21-ed929cc8d71c/animal_1743930609282_1000000043.jpg",
+            "classifications": {
+                "classes": [
+                    "90d950db-2106-4bd9-a4c1-777604c3eada;mammalia;rodentia;;;;rodent",
+                    "f2d233e3-80e3-433d-9687-e29ecc7a467a;mammalia;;;;;mammal",
+                    "27f352c1-e837-4e42-bd3c-a1923b3b5e30;mammalia;lagomorpha;ochotonidae;ochotona;thibetana;moupin pika",
+                    "263409b5-4d0f-4c3a-bf4b-47b20a7487fe;mammalia;lagomorpha;ochotonidae;ochotona;erythrotis;chinese red pika",
+                    "e4d1e892-0e4b-475a-a8ac-b5c3502e0d55;mammalia;rodentia;sciuridae;;;sciuridae family"
+                ],
+                "scores": [
+                    0.2724279463291168,
+                    0.14461226761341095,
+                    0.11299573630094528,
+                    0.06374729424715042,
+                    0.03297261521220207
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.8003993630409241,
+                    "bbox": [
+                        0.41041669249534607,
+                        0.16713091731071472,
+                        0.543749988079071,
+                        0.640668511390686
+                    ]
+                }
+            ],
+            "prediction": "1f689929-883d-4dae-958c-3d57ab5b6c16;;;;;;animal",
+            "prediction_score": 0.8003993630409241,
+            "prediction_source": "detector",
+            "model_version": "4.0.0a"
+        },
+        {
+            "filepath": "uploaded_images/ff0a6b37-6a61-46f5-8a21-ed929cc8d71c/animal_1743930616133_1000000041.jpg",
+            "classifications": {
+                "classes": [
+                    "990ae9dd-7a59-4344-afcb-1b7b21368000;mammalia;primates;hominidae;homo;sapiens;human",
+                    "f1856211-cfb7-4a5b-9158-c0f72fd09ee6;;;;;;blank",
+                    "f2d233e3-80e3-433d-9687-e29ecc7a467a;mammalia;;;;;mammal",
+                    "3d80f1d6-b1df-4966-9ff4-94053c7a902a;mammalia;carnivora;canidae;canis;familiaris;domestic dog",
+                    "e2895ed5-780b-48f6-8a11-9e27cb594511;;;;;;vehicle"
+                ],
+                "scores": [
+                    0.5064513087272644,
+                    0.3874742388725281,
+                    0.013871755450963974,
+                    0.006798545364290476,
+                    0.0046918573789298534
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.9704352617263794,
+                    "bbox": [
+                        0.07133334875106812,
+                        0.10056126117706299,
+                        0.6753333210945129,
+                        0.7245088815689087
+                    ]
+                }
+            ],
+            "prediction": "1f689929-883d-4dae-958c-3d57ab5b6c16;;;;;;animal",
+            "prediction_score": 0.9704352617263794,
+            "prediction_source": "detector",
+            "model_version": "4.0.0a"
+        }
+    ]
+}

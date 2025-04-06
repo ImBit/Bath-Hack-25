@@ -1,9 +1,7 @@
 Essential:
- Image editing in profile
- Precise mapping for markers
- Edit bio in profile
  Have a loading bar within the submission page.
-
+ Add a bunch of test images
+ Check phone can connect to AI
 
 
 Optional:

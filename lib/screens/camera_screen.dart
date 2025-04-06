@@ -195,25 +195,274 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
     }
   }
 
+  List<XFile> selectedImages = [];
+  bool hasSelectedImages = false;
+
   Future<void> _uploadFromGallery() async {
     try {
       final ImagePicker picker = ImagePicker();
-      final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      final List<XFile>? pickedFiles = await picker.pickMultiImage();
 
-      if (pickedFile == null) {
+      if (pickedFiles == null || pickedFiles.isEmpty) {
         return;
       }
 
       setState(() {
-        imageFile = pickedFile;
+        selectedImages = pickedFiles;
+        hasSelectedImages = true;
       });
 
-      _showImagePreview();
+      _showMultiImagePreview();
 
     } catch (e) {
-      _showMessage('Error picking image: ${e.toString()}');
+      _showMessage('Error picking images: ${e.toString()}');
     }
   }
+
+  void _showMultiImagePreview() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(10),
+          child: Container(
+            width: double.infinity,
+            height: MediaQuery.of(context).size.height * 0.7,
+            decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    '${selectedImages.length} ${selectedImages.length == 1 ? 'image' : 'images'} selected',
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ),
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(15),
+                      topRight: Radius.circular(15),
+                    ),
+                    child: GridView.builder(
+                      padding: const EdgeInsets.all(8.0),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        crossAxisSpacing: 4,
+                        mainAxisSpacing: 4,
+                      ),
+                      itemCount: selectedImages.length,
+                      itemBuilder: (context, index) {
+                        return Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.file(
+                              File(selectedImages[index].path),
+                              fit: BoxFit.cover,
+                            ),
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    selectedImages.removeAt(index);
+                                    if (selectedImages.isEmpty) {
+                                      Navigator.pop(context);
+                                      hasSelectedImages = false;
+                                    }
+                                  });
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  padding: const EdgeInsets.all(4),
+                                  child: const Icon(
+                                    Icons.close,
+                                    size: 14,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: const BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(15),
+                      bottomRight: Radius.circular(15),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _resetCamera();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _processMultiUpload();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: const Text('Save All'),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Add this method to process multiple image uploads:
+  Future<void> _processMultiUpload() async {
+    if (selectedImages.isEmpty || _appDirectory == null) {
+      _showMessage('No images to save');
+      return;
+    }
+
+    try {
+      // Request storage permissions first
+      await _requestStoragePermissions();
+
+      List<File> savedFiles = [];
+      for (XFile image in selectedImages) {
+        // Generate a unique filename with timestamp
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final originalFilename = path.basename(image.path);
+        final fileName = 'animal_${timestamp}_${originalFilename}';
+        final savedFilePath = path.join(_appDirectory!.path, fileName);
+
+        // Copy the file to our app's directory
+        final sourceFile = File(image.path);
+        final savedFile = await sourceFile.copy(savedFilePath);
+        savedFiles.add(savedFile);
+      }
+
+      // Update the pending image count
+      _updatePendingImageCount();
+
+      // Show completion dialog
+      _showMultiSavedConfirmation(savedFiles);
+
+    } catch (e) {
+      _showMessage('Error saving images: $e');
+    } finally {
+      _resetCamera();
+    }
+  }
+
+  void _showMultiSavedConfirmation(List<File> savedFiles) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('${savedFiles.length} ${savedFiles.length == 1 ? 'Image' : 'Images'} Saved Successfully'),
+          content: SingleChildScrollView( // Add this to prevent layout issues
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // Important to constrain size
+              children: [
+                // Fix: Specify constraints for the Container properly
+                SizedBox( // Change from Container to SizedBox with fixed height
+                  height: 150, // Keep your height
+                  width: MediaQuery.of(context).size.width * 0.7, // Add width constraint
+                  child: GridView.builder(
+                    shrinkWrap: true, // Add this to ensure grid properly sizes
+                    physics: const NeverScrollableScrollPhysics(), // Optional: prevents nested scrolling conflicts
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 4,
+                      mainAxisSpacing: 4,
+                    ),
+                    itemCount: savedFiles.length > 6 ? 6 : savedFiles.length,
+                    itemBuilder: (context, index) {
+                      if (index == 5 && savedFiles.length > 6) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.7),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Center(
+                            child: Text(
+                              '+${savedFiles.length - 5}',
+                              style: const TextStyle(color: Colors.white, fontSize: 16),
+                            ),
+                          ),
+                        );
+                      }
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: Image.file(
+                          savedFiles[index],
+                          fit: BoxFit.cover,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text('What would you like to do next?'),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                // Navigate to gallery screen
+                _navigateToGallery();
+              },
+              child: const Text('Submit Photos'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Take/Select More'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   void _showImagePreview() {
     showDialog(
@@ -330,8 +579,6 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
         _savedImagePath = savedFilePath;
       });
 
-      _showMessage('Image saved successfully at: $savedFilePath');
-
       // Show options dialog
       _showSavedImageOptions(savedFile);
 
@@ -432,7 +679,8 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
 
   void _resetCamera() {
     setState(() {
-      imageFile = null;
+      selectedImages = [];
+      hasSelectedImages = false;
     });
   }
 
@@ -612,44 +860,35 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
   }
 
   Widget _buildImageWidget() {
-    if (imageFile == null) {
+    if (!hasSelectedImages || selectedImages.isEmpty) {
       return Container();
     }
 
-    if (kIsWeb) {
-      if (imageFile is XFile) {
-        return FutureBuilder<String>(
-          future: (imageFile as XFile).readAsString(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
-              return Image.network(
-                snapshot.data!,
-                fit: BoxFit.contain,
-              );
-            } else {
-              return const Center(child: CircularProgressIndicator());
-            }
-          },
-        );
-      } else {
-        return const Center(child: Text('Unsupported image format', style: TextStyle(color: Colors.white)));
-      }
+    // Just show the first image as a preview
+    if (selectedImages.length == 1) {
+      return Image.file(
+        File(selectedImages[0].path),
+        fit: BoxFit.contain,
+      );
     } else {
-      if (imageFile is XFile) {
-        return Image.file(
-          File((imageFile as XFile).path),
-          fit: BoxFit.contain,
-        );
-      } else if (imageFile is File) {
-        return Image.file(
-          imageFile,
-          fit: BoxFit.contain,
-        );
-      } else {
-        return const Center(child: Text('Unsupported image format', style: TextStyle(color: Colors.white)));
-      }
+      // Show a grid of images
+      return GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 4,
+          mainAxisSpacing: 4,
+        ),
+        itemCount: selectedImages.length,
+        itemBuilder: (context, index) {
+          return Image.file(
+            File(selectedImages[index].path),
+            fit: BoxFit.cover,
+          );
+        },
+      );
     }
   }
+
 
   Widget _buildCameraPreview() {
     final size = MediaQuery.of(context).size;

@@ -1,0 +1,76 @@
+{
+    "predictions": [
+        {
+            "filepath": "uploaded_images/4e2dabfb-8a54-4fe0-b91f-8020181fe03c/animal_1743930231127_1000000046.jpg",
+            "classifications": {
+                "classes": [
+                    "f1856211-cfb7-4a5b-9158-c0f72fd09ee6;;;;;;blank",
+                    "d46dc76d-382e-4b58-8ecb-d0d10b079ad4;reptilia;squamata;phrynosomatidae;sceloporus;;sceloporus species",
+                    "990ae9dd-7a59-4344-afcb-1b7b21368000;mammalia;primates;hominidae;homo;sapiens;human",
+                    "aca65aaa-8c6d-4b69-94de-842b08b13bd6;mammalia;cetartiodactyla;bovidae;bos;taurus;domestic cattle",
+                    "f2d233e3-80e3-433d-9687-e29ecc7a467a;mammalia;;;;;mammal"
+                ],
+                "scores": [
+                    0.9327654838562012,
+                    0.010812136344611645,
+                    0.008249377831816673,
+                    0.002329686190932989,
+                    0.0007665514131076634
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.2920633852481842,
+                    "bbox": [
+                        0.10625001788139343,
+                        0.1521739363670349,
+                        0.893750011920929,
+                        0.79347825050354
+                    ]
+                }
+            ],
+            "prediction": "f2efdae9-efb8-48fb-8a91-eccf79ab4ffb;no cv result;no cv result;no cv result;no cv result;no cv result;no cv result",
+            "prediction_score": 0.9327654838562012,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        },
+        {
+            "filepath": "uploaded_images/4e2dabfb-8a54-4fe0-b91f-8020181fe03c/animal_1743930238637_1000000045.jpg",
+            "classifications": {
+                "classes": [
+                    "446887df-3477-4f4a-a434-852f96ba48d9;reptilia;testudines;emydidae;emys;marmorata;western pond turtle",
+                    "2dca052b-dff5-4cc9-8072-1282c5713286;mammalia;cetartiodactyla;giraffidae;giraffa;camelopardalis;giraffe",
+                    "aca65aaa-8c6d-4b69-94de-842b08b13bd6;mammalia;cetartiodactyla;bovidae;bos;taurus;domestic cattle",
+                    "b1352069-a39c-4a84-a949-60044271c0c1;aves;;;;;bird",
+                    "539ebd55-081b-429a-9ae6-5a6a0f6999d4;mammalia;cetartiodactyla;bovidae;bison;bison;american bison"
+                ],
+                "scores": [
+                    0.5175158977508545,
+                    0.25674328207969666,
+                    0.014262028969824314,
+                    0.013575444929301739,
+                    0.011387203820049763
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.9128741025924683,
+                    "bbox": [
+                        0.1022576242685318,
+                        0.10574710369110107,
+                        0.4926958978176117,
+                        0.7701149582862854
+                    ]
+                }
+            ],
+            "prediction": "1f689929-883d-4dae-958c-3d57ab5b6c16;;;;;;animal",
+            "prediction_score": 0.813483857549727,
+            "prediction_source": "classifier+rollup_to_kingdom",
+            "model_version": "4.0.0a"
+        }
+    ]
+}

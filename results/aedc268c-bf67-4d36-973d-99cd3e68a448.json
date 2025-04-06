@@ -1,0 +1,40 @@
+{
+    "predictions": [
+        {
+            "filepath": "uploaded_images/aedc268c-bf67-4d36-973d-99cd3e68a448/animal_1743929053458_CAP6480607338959822669.jpg",
+            "classifications": {
+                "classes": [
+                    "f1856211-cfb7-4a5b-9158-c0f72fd09ee6;;;;;;blank",
+                    "aca65aaa-8c6d-4b69-94de-842b08b13bd6;mammalia;cetartiodactyla;bovidae;bos;taurus;domestic cattle",
+                    "09fbf931-bbf0-4959-9df6-1082db578281;mammalia;cetartiodactyla;bovidae;connochaetes;taurinus;common wildebeest",
+                    "dd39bbd5-077c-482e-9d33-bd176116c870;mammalia;perissodactyla;equidae;equus;quagga;plains zebra",
+                    "b1352069-a39c-4a84-a949-60044271c0c1;aves;;;;;bird"
+                ],
+                "scores": [
+                    0.9898359179496765,
+                    0.004977501463145018,
+                    0.0008701567421667278,
+                    0.0005010752356611192,
+                    0.0004070074064657092
+                ]
+            },
+            "detections": [
+                {
+                    "category": "3",
+                    "label": "vehicle",
+                    "conf": 0.015833884477615356,
+                    "bbox": [
+                        0.0013889074325561523,
+                        0.004687488079071045,
+                        0.9986110925674438,
+                        0.952343761920929
+                    ]
+                }
+            ],
+            "prediction": "f1856211-cfb7-4a5b-9158-c0f72fd09ee6;;;;;;blank",
+            "prediction_score": 0.9898359179496765,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        }
+    ]
+}

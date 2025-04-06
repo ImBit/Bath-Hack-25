@@ -1,0 +1,40 @@
+{
+    "predictions": [
+        {
+            "filepath": "uploaded_images/83c45432-2d2f-4e2e-a622-1186beb16527/animal_1743929287147_CAP3506771819666127871.jpg",
+            "classifications": {
+                "classes": [
+                    "f1856211-cfb7-4a5b-9158-c0f72fd09ee6;;;;;;blank",
+                    "aca65aaa-8c6d-4b69-94de-842b08b13bd6;mammalia;cetartiodactyla;bovidae;bos;taurus;domestic cattle",
+                    "436ddfdd-bc43-44c3-a25d-34671d3430a0;mammalia;carnivora;ursidae;ursus;americanus;american black bear",
+                    "09fbf931-bbf0-4959-9df6-1082db578281;mammalia;cetartiodactyla;bovidae;connochaetes;taurinus;common wildebeest",
+                    "b1352069-a39c-4a84-a949-60044271c0c1;aves;;;;;bird"
+                ],
+                "scores": [
+                    0.9829981327056885,
+                    0.011069918982684612,
+                    0.0008027117000892758,
+                    0.0006200599018484354,
+                    0.00042380328522995114
+                ]
+            },
+            "detections": [
+                {
+                    "category": "3",
+                    "label": "vehicle",
+                    "conf": 0.014973536133766174,
+                    "bbox": [
+                        0.002777785062789917,
+                        0.0007812380790710449,
+                        0.9972222447395325,
+                        0.9320312738418579
+                    ]
+                }
+            ],
+            "prediction": "f1856211-cfb7-4a5b-9158-c0f72fd09ee6;;;;;;blank",
+            "prediction_score": 0.9829981327056885,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        }
+    ]
+}

@@ -10,6 +10,7 @@ class UserObject {
   final String password;
   String bio;
   String pfp;
+  bool isStaff;
 
   UserObject({
     required this.id,
@@ -17,15 +18,16 @@ class UserObject {
     required this.password,
     this.bio = "--empty bio--",
     this.pfp = "--pfp--",
+    this.isStaff = false,
   });
 
-  // Convert UserObject to a Map for Firestore
   Map<String, dynamic> toMap() {
     return {
       'username': username,
       'password': password,
       'bio': bio,
       'pfp': pfp,
+      'isStaff': isStaff,
     };
   }
 
@@ -37,12 +39,17 @@ class UserObject {
       password: map['password'] ?? '',
       bio: map['bio'] ?? '--empty bio--',
       pfp: map['pfp'] ?? '--pfp--',
+      isStaff: map['isStaff'] ?? 'false',
     );
   }
 
   @override
   String toString() {
-    return 'UserObject(id: $id, username: $username, password: $password, bio: $bio, pfp: $pfp)';
+    return 'UserObject(id: $id, username: $username, password: $password, bio: $bio, pfp: $pfp, isStaff: $isStaff)';
+  }
+
+  bool isUserStaff() {
+    return isStaff;
   }
 }
 
