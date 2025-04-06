@@ -124,7 +124,7 @@ class _JournalViewState extends State<JournalView> {
             level: level,
             currentProgress: currentProgress,
             maxProgress: LevellingManager.getNextLevelRequirement(photoCount),
-            rarity: Rarity.common,
+            rarity: Rarity.fromString(animal.rarity),
             description: animal.description ?? 'No description available.',
             type: animal.species,
             photos: photos,
@@ -354,7 +354,11 @@ class _JournalViewState extends State<JournalView> {
                     children: [
                       const Icon(Icons.location_on),
                       const SizedBox(width: 8),
-                      Text('Unknown location'),
+                      Text(
+                        photo.location != null
+                            ? '${photo.location!.first.toStringAsFixed(2)}, ${photo.location!.last.toStringAsFixed(2)}'
+                            : 'Location not available',
+                      ),
                     ],
                   ),
                 ],

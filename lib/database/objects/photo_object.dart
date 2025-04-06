@@ -118,7 +118,8 @@ class AnimalObject {
       name: map['name'] ?? '',
       species: map['species'] ?? '',
       description: map['description'],
-      imageUrl: map['imageUrl']
+      imageUrl: map['imageUrl'],
+      rarity: map['rarity'],
     );
   }
 

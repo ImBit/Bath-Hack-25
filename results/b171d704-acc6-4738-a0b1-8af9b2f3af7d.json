@@ -1,0 +1,458 @@
+{
+    "predictions": [
+        {
+            "filepath": "uploaded_images/b171d704-acc6-4738-a0b1-8af9b2f3af7d/animal_1743932823015_1000000055.jpg",
+            "classifications": {
+                "classes": [
+                    "3eb4472d-b8da-4bd8-9533-7b9b4e844f6a;aves;anseriformes;anatidae;anas;platyrhynchos;mallard",
+                    "4e436540-aacc-409b-ad26-b31658bed1e3;aves;anseriformes;;;;anseriformes order",
+                    "6de041e9-509c-481b-9f7f-4c5e8c1d86bd;aves;anseriformes;anatidae;mareca;americana;american wigeon",
+                    "f0a9f1ed-a1be-4faa-a68c-a370560ac4eb;aves;anseriformes;anatidae;;;anatidae family",
+                    "7520f733-7da0-4c28-99cd-802cd3be14e8;aves;anseriformes;anatidae;anas;superciliosa;pacific black duck"
+                ],
+                "scores": [
+                    0.8233026266098022,
+                    0.08446245640516281,
+                    0.028249213472008705,
+                    0.022660953924059868,
+                    0.007541853003203869
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.9337320327758789,
+                    "bbox": [
+                        0.24966078996658325,
+                        0.13106796145439148,
+                        0.7055630683898926,
+                        0.5970873832702637
+                    ]
+                }
+            ],
+            "prediction": "3eb4472d-b8da-4bd8-9533-7b9b4e844f6a;aves;anseriformes;anatidae;anas;platyrhynchos;mallard",
+            "prediction_score": 0.8233026266098022,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        },
+        {
+            "filepath": "uploaded_images/b171d704-acc6-4738-a0b1-8af9b2f3af7d/animal_1743932823017_1000000060.jpg",
+            "classifications": {
+                "classes": [
+                    "86f5b978-4f30-40cc-bd08-be9e3fba27a0;mammalia;rodentia;sciuridae;sciurus;carolinensis;eastern gray squirrel",
+                    "b1352069-a39c-4a84-a949-60044271c0c1;aves;;;;;bird",
+                    "1db1c6e2-2ea9-45a6-ab69-a730133298eb;mammalia;rodentia;sciuridae;tamias;striatus;eastern chipmunk",
+                    "e4d1e892-0e4b-475a-a8ac-b5c3502e0d55;mammalia;rodentia;sciuridae;;;sciuridae family",
+                    "d01f67fd-836b-4b25-89fc-2239e59f56b0;mammalia;rodentia;sciuridae;otospermophilus;beecheyi;california ground squirrel"
+                ],
+                "scores": [
+                    0.9656529426574707,
+                    0.010975605808198452,
+                    0.005817406810820103,
+                    0.002432251116260886,
+                    0.0020373212173581123
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.8819695711135864,
+                    "bbox": [
+                        0.09266412258148193,
+                        0.09793815016746521,
+                        0.8725868463516235,
+                        0.7680412530899048
+                    ]
+                }
+            ],
+            "prediction": "86f5b978-4f30-40cc-bd08-be9e3fba27a0;mammalia;rodentia;sciuridae;sciurus;carolinensis;eastern gray squirrel",
+            "prediction_score": 0.9656529426574707,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        },
+        {
+            "filepath": "uploaded_images/b171d704-acc6-4738-a0b1-8af9b2f3af7d/animal_1743932823018_1000000063.jpg",
+            "classifications": {
+                "classes": [
+                    "86f5b978-4f30-40cc-bd08-be9e3fba27a0;mammalia;rodentia;sciuridae;sciurus;carolinensis;eastern gray squirrel",
+                    "d01f67fd-836b-4b25-89fc-2239e59f56b0;mammalia;rodentia;sciuridae;otospermophilus;beecheyi;california ground squirrel",
+                    "e07c537d-08b8-4c31-9768-51e4adf5a5ab;mammalia;rodentia;sciuridae;sciurus;niger;eastern fox squirrel",
+                    "e4d1e892-0e4b-475a-a8ac-b5c3502e0d55;mammalia;rodentia;sciuridae;;;sciuridae family",
+                    "b1352069-a39c-4a84-a949-60044271c0c1;aves;;;;;bird"
+                ],
+                "scores": [
+                    0.8863704204559326,
+                    0.036947447806596756,
+                    0.015928979963064194,
+                    0.014032107777893543,
+                    0.011313439346849918
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.935353696346283,
+                    "bbox": [
+                        0.48876953125,
+                        0.2298177108168602,
+                        0.34716796875,
+                        0.1888020783662796
+                    ]
+                }
+            ],
+            "prediction": "86f5b978-4f30-40cc-bd08-be9e3fba27a0;mammalia;rodentia;sciuridae;sciurus;carolinensis;eastern gray squirrel",
+            "prediction_score": 0.8863704204559326,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        },
+        {
+            "filepath": "uploaded_images/b171d704-acc6-4738-a0b1-8af9b2f3af7d/animal_1743932823020_1000000053.jpg",
+            "classifications": {
+                "classes": [
+                    "3d80f1d6-b1df-4966-9ff4-94053c7a902a;mammalia;carnivora;canidae;canis;familiaris;domestic dog",
+                    "d3d5325f-b055-4925-b875-5cd28af54215;mammalia;carnivora;canidae;canis;;canis species",
+                    "990ae9dd-7a59-4344-afcb-1b7b21368000;mammalia;primates;hominidae;homo;sapiens;human",
+                    "cae9534f-f302-4229-9e11-b91138333d92;aves;galliformes;phasianidae;gallus;gallus domesticus;domestic chicken",
+                    "5c7ce479-8a45-40b3-ae21-7c97dfae22f5;mammalia;cetartiodactyla;cervidae;odocoileus;virginianus;white-tailed deer"
+                ],
+                "scores": [
+                    0.9597623348236084,
+                    0.007041650358587503,
+                    0.006806648802012205,
+                    0.005701323039829731,
+                    0.0016015864675864577
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.8971188068389893,
+                    "bbox": [
+                        0.08646616339683533,
+                        0.057894736528396606,
+                        0.7518796920776367,
+                        0.800000011920929
+                    ]
+                },
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.048336196690797806,
+                    "bbox": [
+                        0.9248120561242104,
+                        0.0,
+                        0.07518796622753143,
+                        0.17368420958518982
+                    ]
+                },
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.011456998996436596,
+                    "bbox": [
+                        0.5676691681146622,
+                        0.0,
+                        0.43233081698417664,
+                        0.16842105984687805
+                    ]
+                }
+            ],
+            "prediction": "3d80f1d6-b1df-4966-9ff4-94053c7a902a;mammalia;carnivora;canidae;canis;familiaris;domestic dog",
+            "prediction_score": 0.9597623348236084,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        },
+        {
+            "filepath": "uploaded_images/b171d704-acc6-4738-a0b1-8af9b2f3af7d/animal_1743932823027_1000000054.jpg",
+            "classifications": {
+                "classes": [
+                    "b1352069-a39c-4a84-a949-60044271c0c1;aves;;;;;bird",
+                    "4e436540-aacc-409b-ad26-b31658bed1e3;aves;anseriformes;;;;anseriformes order",
+                    "3eb4472d-b8da-4bd8-9533-7b9b4e844f6a;aves;anseriformes;anatidae;anas;platyrhynchos;mallard",
+                    "dc5dbe17-a8ca-40a6-ac6a-3b6b1d63e6d6;mammalia;cetartiodactyla;bovidae;eudorcas;thomsonii;thomson's gazelle",
+                    "f0a9f1ed-a1be-4faa-a68c-a370560ac4eb;aves;anseriformes;anatidae;;;anatidae family"
+                ],
+                "scores": [
+                    0.6415309309959412,
+                    0.21691125631332397,
+                    0.05844415724277496,
+                    0.012987533584237099,
+                    0.007043103687465191
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.9712584018707275,
+                    "bbox": [
+                        0.10507246851921082,
+                        0.20765027403831482,
+                        0.5181159377098083,
+                        0.6830601096153259
+                    ]
+                }
+            ],
+            "prediction": "b1352069-a39c-4a84-a949-60044271c0c1;aves;;;;;bird",
+            "prediction_score": 0.9239294482395053,
+            "prediction_source": "classifier+rollup_to_class",
+            "model_version": "4.0.0a"
+        },
+        {
+            "filepath": "uploaded_images/b171d704-acc6-4738-a0b1-8af9b2f3af7d/animal_1743932823030_1000000062.jpg",
+            "classifications": {
+                "classes": [
+                    "86f5b978-4f30-40cc-bd08-be9e3fba27a0;mammalia;rodentia;sciuridae;sciurus;carolinensis;eastern gray squirrel",
+                    "e07c537d-08b8-4c31-9768-51e4adf5a5ab;mammalia;rodentia;sciuridae;sciurus;niger;eastern fox squirrel",
+                    "90d950db-2106-4bd9-a4c1-777604c3eada;mammalia;rodentia;;;;rodent",
+                    "b1352069-a39c-4a84-a949-60044271c0c1;aves;;;;;bird",
+                    "e4d1e892-0e4b-475a-a8ac-b5c3502e0d55;mammalia;rodentia;sciuridae;;;sciuridae family"
+                ],
+                "scores": [
+                    0.9629754424095154,
+                    0.0082550048828125,
+                    0.005514067597687244,
+                    0.005179909989237785,
+                    0.005156048573553562
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.9280626177787781,
+                    "bbox": [
+                        0.43896484375,
+                        0.3691406399011612,
+                        0.2470703125,
+                        0.3255208432674408
+                    ]
+                }
+            ],
+            "prediction": "86f5b978-4f30-40cc-bd08-be9e3fba27a0;mammalia;rodentia;sciuridae;sciurus;carolinensis;eastern gray squirrel",
+            "prediction_score": 0.9629754424095154,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        },
+        {
+            "filepath": "uploaded_images/b171d704-acc6-4738-a0b1-8af9b2f3af7d/animal_1743932823031_1000000061.jpg",
+            "classifications": {
+                "classes": [
+                    "3eb4472d-b8da-4bd8-9533-7b9b4e844f6a;aves;anseriformes;anatidae;anas;platyrhynchos;mallard",
+                    "b1352069-a39c-4a84-a949-60044271c0c1;aves;;;;;bird",
+                    "f0a9f1ed-a1be-4faa-a68c-a370560ac4eb;aves;anseriformes;anatidae;;;anatidae family",
+                    "4e436540-aacc-409b-ad26-b31658bed1e3;aves;anseriformes;;;;anseriformes order",
+                    "6de041e9-509c-481b-9f7f-4c5e8c1d86bd;aves;anseriformes;anatidae;mareca;americana;american wigeon"
+                ],
+                "scores": [
+                    0.9925699830055237,
+                    0.004310132935643196,
+                    0.0013041202910244465,
+                    0.0009675518958829343,
+                    0.00022701523266732693
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.9769335985183716,
+                    "bbox": [
+                        0.35595703125,
+                        0.267578125,
+                        0.3212890625,
+                        0.390625
+                    ]
+                }
+            ],
+            "prediction": "3eb4472d-b8da-4bd8-9533-7b9b4e844f6a;aves;anseriformes;anatidae;anas;platyrhynchos;mallard",
+            "prediction_score": 0.9925699830055237,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        },
+        {
+            "filepath": "uploaded_images/b171d704-acc6-4738-a0b1-8af9b2f3af7d/animal_1743932823033_1000000049.jpg",
+            "classifications": {
+                "classes": [
+                    "3d80f1d6-b1df-4966-9ff4-94053c7a902a;mammalia;carnivora;canidae;canis;familiaris;domestic dog",
+                    "d3d5325f-b055-4925-b875-5cd28af54215;mammalia;carnivora;canidae;canis;;canis species",
+                    "5109acb4-e503-4147-a175-a3c6aa71f1e3;mammalia;perissodactyla;equidae;equus;caballus;domestic horse",
+                    "aca65aaa-8c6d-4b69-94de-842b08b13bd6;mammalia;cetartiodactyla;bovidae;bos;taurus;domestic cattle",
+                    "5c7ce479-8a45-40b3-ae21-7c97dfae22f5;mammalia;cetartiodactyla;cervidae;odocoileus;virginianus;white-tailed deer"
+                ],
+                "scores": [
+                    0.9209375381469727,
+                    0.040371935814619064,
+                    0.005287758074700832,
+                    0.004084938205778599,
+                    0.0034760141279548407
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.9727981686592102,
+                    "bbox": [
+                        0.25333333015441895,
+                        0.00158730149269104,
+                        0.5575000047683716,
+                        0.9952380657196045
+                    ]
+                }
+            ],
+            "prediction": "3d80f1d6-b1df-4966-9ff4-94053c7a902a;mammalia;carnivora;canidae;canis;familiaris;domestic dog",
+            "prediction_score": 0.9209375381469727,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        },
+        {
+            "filepath": "uploaded_images/b171d704-acc6-4738-a0b1-8af9b2f3af7d/animal_1743932823035_1000000050.jpg",
+            "classifications": {
+                "classes": [
+                    "9212982e-8a58-4775-a6ac-e9a43110d8f5;mammalia;carnivora;felidae;felis;catus;domestic cat",
+                    "df8514b0-10a5-411f-8ed6-0f415e8153a3;mammalia;carnivora;felidae;;;cat family",
+                    "96debe9f-7452-42c9-87ae-2e6b37f78025;mammalia;carnivora;felidae;felis;silvestris;wild cat",
+                    "bb2c0674-6b2b-430f-8762-df186ec71098;mammalia;carnivora;felidae;felis;;felis species",
+                    "6f5cfe6e-4d2f-4a39-b7eb-cffe6aef7de1;mammalia;carnivora;felidae;prionailurus;bengalensis;leopard cat"
+                ],
+                "scores": [
+                    0.9836406111717224,
+                    0.006018476095050573,
+                    0.0036088358610868454,
+                    0.002509291982278228,
+                    0.000862712156958878
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.940917432308197,
+                    "bbox": [
+                        0.18148145079612732,
+                        0.04444441199302673,
+                        0.6462963223457336,
+                        0.9527778029441833
+                    ]
+                }
+            ],
+            "prediction": "9212982e-8a58-4775-a6ac-e9a43110d8f5;mammalia;carnivora;felidae;felis;catus;domestic cat",
+            "prediction_score": 0.9836406111717224,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        },
+        {
+            "filepath": "uploaded_images/b171d704-acc6-4738-a0b1-8af9b2f3af7d/animal_1743932823037_1000000052.jpg",
+            "classifications": {
+                "classes": [
+                    "3d80f1d6-b1df-4966-9ff4-94053c7a902a;mammalia;carnivora;canidae;canis;familiaris;domestic dog",
+                    "d3d5325f-b055-4925-b875-5cd28af54215;mammalia;carnivora;canidae;canis;;canis species",
+                    "9212982e-8a58-4775-a6ac-e9a43110d8f5;mammalia;carnivora;felidae;felis;catus;domestic cat",
+                    "0de8422e-f59d-4802-9e93-ab8559e43e55;mammalia;artiodactyla;bovidae;ovis;aries;domestic sheep",
+                    "aaf3b049-36e6-46dd-9a07-8a580e9618b7;mammalia;carnivora;canidae;canis;latrans;coyote"
+                ],
+                "scores": [
+                    0.5833917260169983,
+                    0.40965235233306885,
+                    0.0010638140374794602,
+                    0.0008995058014988899,
+                    0.0005518571124412119
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.9618530869483948,
+                    "bbox": [
+                        0.2502896785736084,
+                        0.10240000486373901,
+                        0.5330243110656738,
+                        0.753600001335144
+                    ]
+                }
+            ],
+            "prediction": "d3d5325f-b055-4925-b875-5cd28af54215;mammalia;carnivora;canidae;canis;;canis species",
+            "prediction_score": 0.9935959354625084,
+            "prediction_source": "classifier+rollup_to_genus",
+            "model_version": "4.0.0a"
+        },
+        {
+            "filepath": "uploaded_images/b171d704-acc6-4738-a0b1-8af9b2f3af7d/animal_1743932823043_1000000051.jpg",
+            "classifications": {
+                "classes": [
+                    "9212982e-8a58-4775-a6ac-e9a43110d8f5;mammalia;carnivora;felidae;felis;catus;domestic cat",
+                    "96debe9f-7452-42c9-87ae-2e6b37f78025;mammalia;carnivora;felidae;felis;silvestris;wild cat",
+                    "bb2c0674-6b2b-430f-8762-df186ec71098;mammalia;carnivora;felidae;felis;;felis species",
+                    "df8514b0-10a5-411f-8ed6-0f415e8153a3;mammalia;carnivora;felidae;;;cat family",
+                    "ba76d46e-25de-45e2-90a8-bd279b650f7c;mammalia;carnivora;felidae;lynx;rufus;bobcat"
+                ],
+                "scores": [
+                    0.9921861886978149,
+                    0.002687896601855755,
+                    0.0025452161207795143,
+                    0.0021131853573024273,
+                    4.6629036660306156e-05
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.8644737005233765,
+                    "bbox": [
+                        0.0,
+                        0.02375808358192444,
+                        0.6315789222717285,
+                        0.9719222187995911
+                    ]
+                }
+            ],
+            "prediction": "9212982e-8a58-4775-a6ac-e9a43110d8f5;mammalia;carnivora;felidae;felis;catus;domestic cat",
+            "prediction_score": 0.9921861886978149,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        },
+        {
+            "filepath": "uploaded_images/b171d704-acc6-4738-a0b1-8af9b2f3af7d/animal_1743932823044_1000000037.jpg",
+            "classifications": {
+                "classes": [
+                    "3d80f1d6-b1df-4966-9ff4-94053c7a902a;mammalia;carnivora;canidae;canis;familiaris;domestic dog",
+                    "d3d5325f-b055-4925-b875-5cd28af54215;mammalia;carnivora;canidae;canis;;canis species",
+                    "189cdd40-b83d-48d1-a4fa-e43a104f2a23;mammalia;cetartiodactyla;bovidae;capra;aegagrus hircus;domestic goat",
+                    "9212982e-8a58-4775-a6ac-e9a43110d8f5;mammalia;carnivora;felidae;felis;catus;domestic cat",
+                    "e237b8d3-997f-4f3b-8736-8c3958f8182c;aves;passeriformes;corvidae;corvus;;corvus species"
+                ],
+                "scores": [
+                    0.9771698117256165,
+                    0.017794113606214523,
+                    0.0030222313944250345,
+                    0.00047168691526167095,
+                    0.00018942116003017873
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.8303965926170349,
+                    "bbox": [
+                        0.19999998807907104,
+                        0.18045112490653992,
+                        0.7947368621826172,
+                        0.6992481350898743
+                    ]
+                }
+            ],
+            "prediction": "3d80f1d6-b1df-4966-9ff4-94053c7a902a;mammalia;carnivora;canidae;canis;familiaris;domestic dog",
+            "prediction_score": 0.9771698117256165,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        }
+    ]
+}

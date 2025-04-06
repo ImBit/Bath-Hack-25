@@ -453,8 +453,11 @@ class _GalleryScreenState extends State<GalleryScreen> {
       try {
         final position = await LocationManager().getPosition();
         if (position != null) {
-          locationData = [position.latitude, position.longitude];
-        }
+          final random = Math.Random();
+          locationData = [
+            position.latitude + (random.nextDouble() * 0.1 - 0.05),
+            position.longitude + (random.nextDouble() * 0.1 - 0.05)
+          ];        }
       } catch (e) {
         _logDebug("Error getting location: $e");
       }
@@ -485,7 +488,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
             animalName: animalLabel,
             species: animalLabel,
             firstPhoto: photoObject,
-            rarity: Rarity.legendary
+            rarity: Rarity.values[Math.Random().nextInt(Rarity.values.length)]
         );
         _logDebug("Generated new animal object: ${animalToSave
             .name} with rarity ${animalToSave.rarity}");
@@ -558,9 +561,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
         .where((image) => !successfullySubmitted.containsKey(image))
         .length;
 
+    // ONLY show the summary once
     if (successfullySubmitted.isNotEmpty || blankImageCount > 0) {
       if (mounted) {
-        await _showSubmissionSummary(successfullySubmitted, 0);
+        await _showSubmissionSummary(successfullySubmitted, blankImageCount);
       }
 
       for (var image in imagesToRemove) {
@@ -579,20 +583,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
         _appImages.removeWhere((image) => imagesToRemove.contains(image));
       });
 
-      // Rest of your code for showing summary etc.
-      int blankImageCount = imagesToRemove
-          .where(
-              (image) => !successfullySubmitted.containsKey(image)
-      )
-          .length;
-
-      if (successfullySubmitted.isNotEmpty || blankImageCount > 0) {
-        if (mounted) {
-          await _showSubmissionSummary(successfullySubmitted, blankImageCount);
-        }
-      }
-
-      // Load fresh images after processing
       await _loadImagesFromStorage();
 
       if (mounted) {

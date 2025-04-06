@@ -1,0 +1,51 @@
+{
+    "predictions": [
+        {
+            "filepath": "uploaded_images/16c70bce-8af9-442c-a304-9f878f277045/animal_1743933497823_CAP2405407001918560863.jpg",
+            "classifications": {
+                "classes": [
+                    "990ae9dd-7a59-4344-afcb-1b7b21368000;mammalia;primates;hominidae;homo;sapiens;human",
+                    "f1856211-cfb7-4a5b-9158-c0f72fd09ee6;;;;;;blank",
+                    "3d80f1d6-b1df-4966-9ff4-94053c7a902a;mammalia;carnivora;canidae;canis;familiaris;domestic dog",
+                    "b1352069-a39c-4a84-a949-60044271c0c1;aves;;;;;bird",
+                    "9212982e-8a58-4775-a6ac-e9a43110d8f5;mammalia;carnivora;felidae;felis;catus;domestic cat"
+                ],
+                "scores": [
+                    0.9969505071640015,
+                    0.002443980425596237,
+                    0.0002572374069131911,
+                    0.00015055382391437888,
+                    3.5141158150509e-05
+                ]
+            },
+            "detections": [
+                {
+                    "category": "2",
+                    "label": "human",
+                    "conf": 0.9614992737770081,
+                    "bbox": [
+                        0.0,
+                        0.22421875596046448,
+                        0.9333333373069763,
+                        0.725781261920929
+                    ]
+                },
+                {
+                    "category": "2",
+                    "label": "human",
+                    "conf": 0.5911633372306824,
+                    "bbox": [
+                        0.0,
+                        0.22968751192092896,
+                        0.12777778506278992,
+                        0.39453125
+                    ]
+                }
+            ],
+            "prediction": "990ae9dd-7a59-4344-afcb-1b7b21368000;mammalia;primates;hominidae;homo;sapiens;human",
+            "prediction_score": 0.9614992737770081,
+            "prediction_source": "detector",
+            "model_version": "4.0.0a"
+        }
+    ]
+}

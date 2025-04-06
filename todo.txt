@@ -1,8 +1,5 @@
 Essential:
- Have a loading bar within the submission page.
- Add a bunch of test images
- Check phone can connect to AI
-
+ Randomise rarity
 
 Optional:
  Settings page?

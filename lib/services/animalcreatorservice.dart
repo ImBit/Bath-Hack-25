@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:animal_conservation/services/user_manager.dart';
 import 'package:http/http.dart' as http;
 import '../database/objects/photo_object.dart';
@@ -104,17 +105,7 @@ class AnimalService {
       imageUrl = fetchedImageUrl ?? newPhoto.photoPath;
     }
 
-    Rarity calculatedRarity;
-    if (totalPhotoCount >= 20) {
-      calculatedRarity = Rarity.common;
-    } else if (totalPhotoCount >= 10) {
-      calculatedRarity = Rarity.uncommon;
-    } else if (totalPhotoCount >= 5) {
-      calculatedRarity = Rarity.rare;
-    } else {
-      calculatedRarity = Rarity.legendary;
-    }
-
+    Rarity calculatedRarity =  Rarity.fromString(existingAnimal.rarity);
     String rarityString = calculatedRarity.toString().split('.').last;
 
     return AnimalObject(

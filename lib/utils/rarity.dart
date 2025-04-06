@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 enum Rarity {
@@ -55,7 +57,7 @@ enum Rarity {
   String get displayName => name[0].toUpperCase() + name.substring(1);
 
   static Rarity fromString(String? rarity) {
-    if (rarity == null) return Rarity.common;
+    if (rarity == null) return Rarity.values[Random().nextInt(Rarity.values.length)];
 
     try {
       return Rarity.values.firstWhere(

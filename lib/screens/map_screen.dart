@@ -22,14 +22,13 @@ class _MapScreenState extends State<MapScreen> {
   List<String> availableAnimals = [];
   bool isLoading = true;
   int? selectedMarkerIndex;
-  bool viewAllPhotos = false; // For admin toggle between all photos and personal photos
+  bool viewAllPhotos = false;
   String? selectedAnimalFilter;
 
-  // Date range values
   RangeValues _dateRangeValues = const RangeValues(0.0, 1.0);
   DateTime? oldestPhotoDate;
   DateTime? newestPhotoDate;
-  bool _filterExpanded = false; // Track if filter panel is expanded
+  bool _filterExpanded = false;
 
   @override
   void initState() {
@@ -43,18 +42,15 @@ class _MapScreenState extends State<MapScreen> {
         isLoading = true;
       });
 
-      // Load user's photos first
       var photos = await FirestoreService.getPhotosByUser(UserManager.getUserId());
       userPhotos = photos.where((photo) => photo.getLatLng() != null).toList();
       displayedPhotos = List.from(userPhotos);
 
-      // If user is staff, also load all photos but don't display them yet
       if (UserManager.getCurrentUser?.isUserStaff() == true) {
         allPhotos = await FirestoreService.getAllPhotos();
         allPhotos = allPhotos.where((photo) => photo.getLatLng() != null).toList();
       }
 
-      // Get all available animals for filtering (for all users)
       Set<String> animalSet = {};
       List<PhotoObject> photosToProcess = UserManager.getCurrentUser?.isUserStaff() == true ?
       allPhotos : userPhotos;
@@ -71,7 +67,6 @@ class _MapScreenState extends State<MapScreen> {
       availableAnimals = animalSet.toList();
       availableAnimals.sort();
 
-      // Find oldest and newest photo dates for timeline slider
       if (photosToProcess.isNotEmpty) {
         photosToProcess.sort((a, b) => a.timestamp.compareTo(b.timestamp));
         oldestPhotoDate = photosToProcess.first.timestamp;
@@ -136,7 +131,6 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-  // Toggle between all photos and personal photos (for staff only)
   void _toggleViewAll() {
     setState(() {
       viewAllPhotos = !viewAllPhotos;
@@ -161,7 +155,6 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _showAnimalDetails(PhotoObject photo) {
-    // Same as before
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -278,7 +271,6 @@ class _MapScreenState extends State<MapScreen> {
         title: const Text('Map'),
         backgroundColor: const Color.fromRGBO(255, 166, 0, 1),
         actions: [
-          // Filter button for all users
           IconButton(
             icon: Icon(
               Icons.filter_list,
@@ -295,7 +287,6 @@ class _MapScreenState extends State<MapScreen> {
       ),
       body: Column(
         children: [
-          // Filter controls section - available to all users
           if (_filterExpanded) _buildFilterControls(),
 
           // Map view
@@ -307,7 +298,7 @@ class _MapScreenState extends State<MapScreen> {
                 initialCenter: displayedPhotos.isNotEmpty && displayedPhotos.first.getLatLng() != null
                     ? displayedPhotos.first.getLatLng()!
                     : const LatLng(51.380007, -2.325986),
-                initialZoom: 9.2,
+                initialZoom: 12.0
               ),
               children: [
                 TileLayer(
@@ -316,6 +307,7 @@ class _MapScreenState extends State<MapScreen> {
                 ),
                 MarkerLayer(
                   alignment: Alignment.topCenter,
+                  rotate: false,
                   markers: List.generate(displayedPhotos.length, (index) {
                     final photo = displayedPhotos[index];
                     final location = photo.getLatLng()!;
@@ -326,9 +318,7 @@ class _MapScreenState extends State<MapScreen> {
                       height: 60,
                       rotate: false,
                       child: FutureBuilder<Color>(
-                          future: selectedMarkerIndex == index
-                              ? _getMarkerColor(photo)
-                              : Future.value(Colors.white),
+                          future: _getMarkerColor(photo),
                           builder: (context, snapshot) {
                             return FixedRotationMarker(
                               normalWidth: 60,
@@ -358,7 +348,6 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  // Build the filter controls section with dropdown, range slider, and admin toggle
   Widget _buildFilterControls() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -366,7 +355,6 @@ class _MapScreenState extends State<MapScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with filter icon and animal dropdown
           Row(
             children: [
               const Icon(Icons.filter_list, size: 16.0, color: Colors.blue),
@@ -379,7 +367,6 @@ class _MapScreenState extends State<MapScreen> {
                 ),
               ),
               const Spacer(),
-              // Admin toggle for all/personal photos
               if (UserManager.getCurrentUser?.isUserStaff() == true)
                 Row(
                   children: [
@@ -396,7 +383,6 @@ class _MapScreenState extends State<MapScreen> {
             ],
           ),
 
-          // Animal filter dropdown
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: DropdownButton<String>(
@@ -424,7 +410,6 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
 
-          // Date range labels
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
             child: Row(
@@ -442,7 +427,6 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
 
-          // Date range slider
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: RangeSlider(
@@ -465,7 +449,6 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
 
-          // Date range markers
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Row(
@@ -487,7 +470,6 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
 
-          // Count of displayed photos
           Center(
             child: Padding(
               padding: const EdgeInsets.only(top: 8.0),
@@ -502,12 +484,10 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  // Format date to human-readable string
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
-  // Get human-readable label for the current date range
   String _getDateRangeLabel() {
     if (oldestPhotoDate == null || newestPhotoDate == null) return '';
 
@@ -517,13 +497,11 @@ class _MapScreenState extends State<MapScreen> {
     return '${_formatDate(startDate)} to ${_formatDate(endDate)}';
   }
 
-  // Get a specific date label for a slider position
   String _getDateLabel(double value) {
     if (oldestPhotoDate == null || newestPhotoDate == null) return '';
     return _formatDate(_getDateFromValue(value));
   }
 
-  // Convert a slider value (0-1) to a specific date
   DateTime _getDateFromValue(double value) {
     final totalDurationMs = newestPhotoDate!.difference(oldestPhotoDate!).inMilliseconds;
     final dateMs = oldestPhotoDate!.millisecondsSinceEpoch +
