@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:animal_conservation/services/user_manager.dart';
 import 'package:http/http.dart' as http;
 import '../database/objects/photo_object.dart';
 import '../screens/journal_screen.dart';
@@ -12,8 +13,12 @@ class AnimalService {
     required PhotoObject firstPhoto,
     required Rarity rarity,
   }) async {
-    // Get current timestamp for the description
-    final timestamp = DateTime.now().toUtc().toString().split('.')[0];
+    // Get current date and time for the description
+    final now = DateTime.now();
+    final formattedDate = _getFormattedDate(now);
+
+    // Get username of the spotter
+    final username = UserManager.getCurrentUser?.username ?? "Unknown Explorer";
 
     // Fetch description and image in parallel
     final descriptionFuture = fetchAnimalDescription(animalName);
@@ -28,8 +33,8 @@ class AnimalService {
     if (description != null && description.isNotEmpty) {
       finalDescription = description;
 
-      // Add timestamp information
-      finalDescription += "\n\nFirst spotted on $timestamp UTC.";
+      // Add timestamp information with nicer formatting
+      finalDescription += "\n\n**First spotted by $username on $formattedDate.**";
 
       // If species is provided and different from the name, add it to description
       if (species != null && species.isNotEmpty && species.toLowerCase() != animalName.toLowerCase()) {
@@ -37,7 +42,7 @@ class AnimalService {
       }
     } else {
       // Create description template if fetching failed
-      finalDescription = "This $animalName was first spotted on $timestamp UTC.";
+      finalDescription = "This $animalName was **first spotted by $username on $formattedDate.**";
 
       // If species is provided and different from the name, add it to description
       if (species != null && species.isNotEmpty && species.toLowerCase() != animalName.toLowerCase()) {
@@ -59,23 +64,45 @@ class AnimalService {
     );
   }
 
-  /// Updates an existing AnimalObject with new information
+  static String _getFormattedDate(DateTime date) {
+    final months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    String day = _getDaySuffix(date.day);
+    String month = months[date.month - 1];
+    int year = date.year;
+
+    return '$month $day, $year';
+  }
+
+// Helper method to add the appropriate suffix to the day
+  static String _getDaySuffix(int day) {
+    if (day >= 11 && day <= 13) {
+      return '${day}th';
+    }
+
+    switch (day % 10) {
+      case 1: return '${day}st';
+      case 2: return '${day}nd';
+      case 3: return '${day}rd';
+      default: return '${day}th';
+    }
+  }
+
   static Future<AnimalObject> updateAnimalObject({
     required AnimalObject existingAnimal,
     required PhotoObject newPhoto,
     required int totalPhotoCount,
   }) async {
-    // Keep the existing image URL if it exists
     String? imageUrl = existingAnimal.imageUrl;
 
-    // If no image URL exists or we want to update it with a newer photo
     if (imageUrl == null || imageUrl.isEmpty) {
-      // Try to fetch an image from the internet
       String? fetchedImageUrl = await fetchAnimalImage(existingAnimal.name);
       imageUrl = fetchedImageUrl ?? newPhoto.photoPath;
     }
 
-    // Determine rarity based on total photo count
     Rarity calculatedRarity;
     if (totalPhotoCount >= 20) {
       calculatedRarity = Rarity.common;
@@ -87,10 +114,8 @@ class AnimalService {
       calculatedRarity = Rarity.legendary;
     }
 
-    // Convert the rarity enum to string
     String rarityString = calculatedRarity.toString().split('.').last;
 
-    // Create updated animal object
     return AnimalObject(
         id: existingAnimal.id,
         name: existingAnimal.name,
@@ -101,10 +126,8 @@ class AnimalService {
     );
   }
 
-  /// Fetch animal description from the internet (similar to the Python script)
   static Future<String?> fetchAnimalDescription(String animalName) async {
     try {
-      // Try Wikipedia API first as it's more reliable
       final encodedName = Uri.encodeComponent(animalName.replaceAll(' ', '_'));
       final wikiUrl = 'https://en.wikipedia.org/api/rest_v1/page/summary/$encodedName';
 
@@ -118,10 +141,8 @@ class AnimalService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['extract'] != null && data['extract'].toString().isNotEmpty) {
-          // Get the extract and format it
           String extract = data['extract'].toString();
 
-          // Split into sentences and take the first 3
           final sentences = extract.split(RegExp(r'[.!?]+\s*'));
           final cleanSentences = sentences
               .where((s) => s.trim().isNotEmpty)
@@ -135,7 +156,6 @@ class AnimalService {
         }
       }
 
-      // If Wikipedia fails, try DuckDuckGo API as backup (similar to Python script)
       final query = Uri.encodeComponent('$animalName species description habitat');
       final ddgUrl = 'https://api.duckduckgo.com/?q=$query&format=json';
 
@@ -149,7 +169,6 @@ class AnimalService {
       if (ddgResponse.statusCode == 200) {
         final data = jsonDecode(ddgResponse.body);
 
-        // Check for abstract
         if (data['Abstract'] != null && data['Abstract'].toString().isNotEmpty) {
           String abstract = data['Abstract'].toString();
           final sentences = abstract.split(RegExp(r'[.!?]+\s*'));
@@ -164,7 +183,6 @@ class AnimalService {
           }
         }
 
-        // Try related topics
         if (data['RelatedTopics'] != null && data['RelatedTopics'] is List && (data['RelatedTopics'] as List).isNotEmpty) {
           for (var topic in data['RelatedTopics']) {
             if (topic['Text'] != null && topic['Text'].toString().isNotEmpty) {
@@ -184,24 +202,17 @@ class AnimalService {
         }
       }
 
-      // If all APIs fail, return a generic description
       return '''
-$animalName is a fascinating animal species found in various habitats around the world.
-
-These animals are known for their distinctive characteristics and behaviors. As you discover more about them through your observations, this journal will be updated with more detailed information.
-
-Keep taking photos to level up your knowledge of this species!
-''';
+      $animalName is an awesome animal!
+      ''';
     } catch (e) {
       print("Error fetching animal description: $e");
       return null;
     }
   }
 
-  /// Fetch an image URL for the animal from the internet
   static Future<String?> fetchAnimalImage(String animalName) async {
     try {
-      // Try to get an image from Wikipedia
       final encodedName = Uri.encodeComponent(animalName.replaceAll(' ', '_'));
       final wikiUrl = 'https://en.wikipedia.org/api/rest_v1/page/summary/$encodedName';
 
@@ -215,23 +226,19 @@ Keep taking photos to level up your knowledge of this species!
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
-        // Check for thumbnail image
         if (data['thumbnail'] != null &&
             data['thumbnail']['source'] != null &&
             data['thumbnail']['source'].toString().isNotEmpty) {
           return data['thumbnail']['source'].toString();
         }
 
-        // Check for main image
         if (data['originalimage'] != null &&
             data['originalimage']['source'] != null &&
             data['originalimage']['source'].toString().isNotEmpty) {
           return data['originalimage']['source'].toString();
         }
       }
-
-      // If Wikipedia fails, could try other sources
-      // For now, return null and the caller will use the photo path
+      
       return null;
     } catch (e) {
       print("Error fetching animal image: $e");

@@ -125,6 +125,32 @@ class FirestoreService {
     }
   }
 
+  static Future<bool> updateProfilePicture(String userId, String newPfp) async {
+    final db = await _db;
+    try {
+      await db.collection("users").doc(userId).update({
+        'pfp': newPfp
+      });
+      return true;
+    } catch (e) {
+      print("Error updating profile picture: $e");
+      return false;
+    }
+  }
+
+  static Future<bool> updateBio(String userId, String newBio) async {
+    final db = await _db;
+    try {
+      await db.collection("users").doc(userId).update({
+        'bio': newBio
+      });
+      return true;
+    } catch (e) {
+      print("Error updating bio: $e");
+      return false;
+    }
+  }
+
 // User login
   static Future<UserObject?> login(String username, String password) async {
     try {

@@ -253,9 +253,13 @@ class _JournalViewState extends State<JournalView>
                     child: GestureDetector(
                       onTap: () => _showAnimalDetails(entry),
                       child: Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15), // Rounded corners for the card
+                        ),
                         color: Colors.grey[300],
                         child: Container(
                           decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15), // Match card's corner radius
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: const Alignment(0, 2),
@@ -474,21 +478,31 @@ class AnimalDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        CircleAvatar(
-          radius: 20,
-          backgroundImage: entry.image,
+        // Image container - square with rounded corners
+        Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            image: DecorationImage(
+              image: entry.image,
+              fit: BoxFit.cover,
+            ),
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Name and Rarity
+              // Name and Rarity - with capitalized name
               Row(
                 children: [
                   Expanded(
                     child: Text(
-                      entry.name,
+                      entry.name.split(' ').map((word) => word.isNotEmpty
+                          ? '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}'
+                          : '').join(' '),
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
