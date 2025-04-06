@@ -14,7 +14,6 @@ import '../services/animalcreatorservice.dart';
 import '../services/api_service.dart';
 import '../services/location_manager.dart';
 import '../utils/storage_manager.dart';
-import '../widgets/bottom_navigation.dart';
 
 class GalleryScreen extends StatefulWidget {
   const GalleryScreen({super.key});
@@ -37,6 +36,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
   String _debugLogs = '';
   bool _isLoading = true;
   bool _isImageChanged = false;
+  List<File> _submittedImages = []; // Track submitted images
 
   @override
   void initState() {
@@ -109,36 +109,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   Future<void> _requestPermissions(PermissionType type) async {
-    // List<Permission> permissions = [];
-    //
-    // switch (type) {
-    //   case PermissionType.camera:
-    //     permissions = [Permission.camera];
-    //     break;
-    //   case PermissionType.gallery:
-    //     permissions = [Permission.photos, Permission.storage];
-    //     break;
-    // }
-    //
-    // Map<Permission, PermissionStatus> statuses = await permissions.request();
-    //
-    // for (var permission in permissions) {
-    //   if (statuses[permission]!.isPermanentlyDenied) {
-    //     _logDebug("${permission.toString()} permission permanently denied");
-    //     if (!mounted) return;
-    //
-    //     ScaffoldMessenger.of(context).showSnackBar(
-    //       SnackBar(
-    //         content: Text('${permission.toString()} permission is permanently denied. Please enable it from app settings.'),
-    //         duration: const Duration(seconds: 5),
-    //         action: SnackBarAction(
-    //           label: 'Settings',
-    //           onPressed: () => openAppSettings(),
-    //         ),
-    //       ),
-    //     );
-    //   }
-    // }
+    // Permission request code preserved
   }
 
   // Enhanced camera capture with explicit storage manager usage
@@ -323,6 +294,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
     setState(() {
       _isProcessing = true;
       _analysisComplete = false;
+      _submittedImages = []; // Reset submitted images list
     });
 
     try {
@@ -531,14 +503,27 @@ class _GalleryScreenState extends State<GalleryScreen> {
     }
   }
 
-// Move the image saving logic to a separate method to avoid code duplication
   Future<void> _processImageSaving(String userId) async {
     int savedCount = 0;
+    List<File> imagesToRemove = [];
+    Map<File, String> successfullySubmitted = {}; // Track submitted images and their labels
 
     // For each image that has an animal label
     for (var imageFile in _appImages) {
       final fileName = path.basename(imageFile.path);
       final animalLabel = _getAnimalLabel(imageFile);
+
+      // Skip blank images and delete them directly
+      if (animalLabel.toLowerCase() == 'blank') {
+        _logDebug("Detected blank image: $fileName - removing directly");
+        try {
+          await _storageManager.deleteImage(imageFile);
+          imagesToRemove.add(imageFile);
+        } catch (e) {
+          _logDebug("Error removing blank image: $e");
+        }
+        continue;
+      }
 
       // Skip images that weren't successfully analyzed
       if (animalLabel == 'Not analyzed') {
@@ -639,7 +624,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
         continue;
       }
 
-      // Now save the photo to database
       String? photoId;
       try {
         photoId = await FirestoreService.savePhoto(photoObject);
@@ -647,12 +631,50 @@ class _GalleryScreenState extends State<GalleryScreen> {
         if (photoId != null && photoId.isNotEmpty) {
           _logDebug("Photo saved with ID: $photoId");
           savedCount++;
+
+          // Track this image for removal and store its label
+          imagesToRemove.add(imageFile);
+          successfullySubmitted[imageFile] = animalLabel;
         } else {
           _logDebug("Failed to save photo: $fileName");
         }
       } catch (e) {
         _logDebug("Error saving photo: $e");
       }
+    }
+
+    int blankImageCount = imagesToRemove.where(
+            (image) => !successfullySubmitted.containsKey(image)
+    ).length;
+
+    // Handle successfully submitted images
+    if (successfullySubmitted.isNotEmpty || blankImageCount > 0) {
+      // Show submission summary dialog
+      if (mounted) {
+        await _showSubmissionSummary(successfullySubmitted, blankImageCount);
+      }
+
+      // Remove all images from storage
+      for (var image in imagesToRemove) {
+        try {
+          // Ensure the file is deleted from the actual storage directory
+          if (await image.exists()) {
+            await image.delete();
+          }
+          await _storageManager.deleteImage(image);
+          _logDebug("Removed submitted image from storage: ${image.path}");
+        } catch (e) {
+          _logDebug("Error removing submitted image: $e");
+        }
+      }
+
+      // Remove the images from the app list
+      setState(() {
+        _appImages.removeWhere((image) => imagesToRemove.contains(image));
+      });
+
+      // Reload images to ensure UI is updated
+      await _loadImagesFromStorage();
     }
 
     if (mounted) {
@@ -664,12 +686,94 @@ class _GalleryScreenState extends State<GalleryScreen> {
     _logDebug("Database save complete: $savedCount images saved");
   }
 
+  Future<void> _showSubmissionSummary(Map<File, String> submittedImages, int blankImageCount) async {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Submission Summary'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (submittedImages.isNotEmpty) ...[
+                  const Text('Successfully submitted:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  ...submittedImages.entries.map((entry) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: Image.file(
+                              entry.key,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            entry.value,
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )).toList(),
+                  const SizedBox(height: 16),
+                ],
+
+                if (blankImageCount > 0)
+                  Text(
+                    '$blankImageCount blank images were not submitted and will be removed.',
+                    style: const TextStyle(fontStyle: FontStyle.italic),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Done'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> deleteImage(File imageFile) async {
+    try {
+      if (await imageFile.exists()) {
+        await imageFile.delete();
+      }
+    } catch (e) {
+      print("Error deleting image file: $e");
+      throw e;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Animal Gallery'),
+        automaticallyImplyLeading: true, // Add back button
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -722,39 +826,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
       ),
       body: Column(
         children: [
-          // Camera and gallery buttons
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: _takePhoto,
-                    icon: const Icon(Icons.camera_alt),
-                    label: const Text('Take Photo'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: _pickImagesFromGallery,
-                    icon: const Icon(Icons.photo_library),
-                    label: const Text('Import Photos'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
           // Status bar for image count
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Row(
               children: [
                 Icon(
@@ -913,13 +987,13 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       Text('Processing...'),
                     ],
                   )
-                      : const Text('Analyze Animals'),
+                      : const Text('Submit Findings!'),
                 ),
               ),
             ),
         ],
       ),
-      bottomNavigationBar: const CustomBottomNavigation(currentIndex: 4),
+      // Remove bottom navigation bar since we'll access this screen from the camera screen
     );
   }
 

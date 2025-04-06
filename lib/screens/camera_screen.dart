@@ -7,7 +7,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import '../utils/storage_manager.dart';
-import '../widgets/bottom_navigation.dart';
+import '../screens/gallery_screen.dart';
+import '../widgets/bottom_navigation.dart'; // Import GalleryScreen for navigation
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
@@ -24,6 +25,8 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
   int selectedCameraIndex = 0;
   bool showingPreview = false;
   String _savedImagePath = '';
+  int _pendingImageCount = 0;
+  bool _isLoadingCount = true;
 
   // Directory where we'll save our images
   Directory? _appDirectory;
@@ -34,6 +37,31 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
     WidgetsBinding.instance.addObserver(this);
     _initializeCamera();
     _initAppDirectory();
+    _updatePendingImageCount();
+  }
+
+  // Update the count of pending images
+  Future<void> _updatePendingImageCount() async {
+    setState(() {
+      _isLoadingCount = true;
+    });
+
+    try {
+      // Use StorageManager directly instead of accessing GalleryScreen's state
+      final storageManager = StorageManager();
+      final images = await storageManager.getAllImages();
+
+      setState(() {
+        _pendingImageCount = images.length;
+        _isLoadingCount = false;
+      });
+    } catch (e) {
+      print("Error updating pending image count: $e");
+      setState(() {
+        _pendingImageCount = 0;
+        _isLoadingCount = false;
+      });
+    }
   }
 
   Future<void> _initAppDirectory() async {
@@ -68,23 +96,15 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
       cameraController.dispose();
     } else if (state == AppLifecycleState.resumed) {
       _onNewCameraSelected(cameras[selectedCameraIndex]);
+      // Refresh pending image count when app resumes
+      _updatePendingImageCount();
     }
   }
 
   Future<void> _requestStoragePermissions() async {
     if (kIsWeb) return; // No need for permissions on web
 
-    // Map<Permission, PermissionStatus> statuses = await [
-    //   Permission.storage,
-    //   if (Platform.isAndroid && await Permission.manageExternalStorage.isGranted)
-    //     Permission.manageExternalStorage,
-    // ].request();
-    //
-    // bool allGranted = statuses.values.every((status) => status.isGranted);
-    //
-    // if (!allGranted) {
-    //   _showMessage('Storage permission is required to save images');
-    // }
+    // Permission request code preserved
   }
 
   Future<void> _initializeCamera() async {
@@ -315,6 +335,9 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
       // Show options dialog
       _showSavedImageOptions(savedFile);
 
+      // Update the pending image count
+      _updatePendingImageCount();
+
     } catch (e) {
       _showMessage('Error saving image: $e');
     } finally {
@@ -358,9 +381,10 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                Navigator.pushReplacementNamed(context, AppRoutes.gallery);
+                // Navigate to gallery screen
+                _navigateToGallery();
               },
-              child: const Text('Go to Gallery'),
+              child: const Text('Go to Submit Gallery'),
             ),
             TextButton(
               onPressed: () {
@@ -372,6 +396,17 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
         );
       },
     );
+  }
+
+  // Navigation to GalleryScreen
+  void _navigateToGallery() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const GalleryScreen()),
+    ).then((_) {
+      // Refresh the image count when returning from gallery
+      _updatePendingImageCount();
+    });
   }
 
   void _resetCamera() {
@@ -389,14 +424,57 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      // Remove the AppBar title and keep just the action
       appBar: AppBar(
-        title: const Text('Camera'),
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         elevation: 0,
+        automaticallyImplyLeading: false, // Remove back button
+        title: null, // No title
+        actions: [
+          // Submit icon with notification badge
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(
+                  Icons.upload_file,
+                  size: 28,
+                ),
+                onPressed: _navigateToGallery,
+                tooltip: 'Submit Images',
+              ),
+              if (_pendingImageCount > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Text(
+                      _pendingImageCount.toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -405,6 +483,66 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
         ],
       ),
       bottomNavigationBar: const CustomBottomNavigation(currentIndex: 2),
+    );
+  }
+
+// Add this back to your CameraScreen to replace the navigation bar function:
+  Widget _buildCameraControls() {
+    return Positioned(
+      bottom: 30,
+      left: 0,
+      right: 0,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            // Gallery icon moved here
+            IconButton(
+              icon: const Icon(
+                Icons.photo_library,
+                color: Colors.white,
+                size: 28,
+              ),
+              onPressed: _uploadFromGallery,
+            ),
+            // Camera capture button
+            GestureDetector(
+              onTap: isCapturing ? null : _takePicture,
+              child: Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 3),
+                  color: isCapturing ? Colors.grey : Colors.transparent,
+                ),
+                child: Center(
+                  child: isCapturing
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : Container(
+                    width: 50,
+                    height: 50,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // Camera flip button
+            IconButton(
+              icon: const Icon(
+                Icons.flip_camera_ios,
+                color: Colors.white,
+                size: 28,
+              ),
+              onPressed: cameras.length > 1 ? _toggleCamera : null,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -440,11 +578,16 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
   }
 
   Widget _buildBody() {
-    if (!kIsWeb && controller != null && controller!.value.isInitialized) {
-      return _buildCameraPreview();
-    }
-
-    return _buildLoadingView();
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (!kIsWeb && controller != null && controller!.value.isInitialized)
+          _buildCameraPreview()
+        else
+          _buildLoadingView(),
+        _buildCameraControls(), // Add the controls back as an overlay
+      ],
+    );
   }
 
   Widget _buildImageWidget() {
@@ -492,72 +635,12 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
     final deviceRatio = size.width / size.height;
     final scale = 1 / (controller!.value.aspectRatio * deviceRatio);
 
-    return Stack(
-      children: [
-        Transform.scale(
-          scale: scale,
-          alignment: Alignment.center,
-          child: Center(
-            child: CameraPreview(controller!),
-          ),
-        ),
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 30),
-            color: Colors.black.withOpacity(0.3),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.photo_library,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                  onPressed: _uploadFromGallery,
-                ),
-
-                GestureDetector(
-                  onTap: isCapturing ? null : _takePicture,
-                  child: Container(
-                    width: 70,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 3),
-                      color: isCapturing ? Colors.grey : Colors.transparent,
-                    ),
-                    child: Center(
-                      child: isCapturing
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : Container(
-                        width: 50,
-                        height: 50,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                IconButton(
-                  icon: const Icon(
-                    Icons.flip_camera_ios,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                  onPressed: cameras.length > 1 ? _toggleCamera : null,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
+    return Transform.scale(
+      scale: scale,
+      alignment: Alignment.center,
+      child: Center(
+        child: CameraPreview(controller!),
+      ),
     );
   }
 
@@ -584,4 +667,9 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
       ),
     );
   }
+}
+
+enum PermissionType {
+  camera,
+  gallery
 }
