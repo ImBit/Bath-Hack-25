@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as Math;
 import 'package:animal_conservation/screens/journal_screen.dart';
 import 'package:animal_conservation/services/image_encryptor.dart';
 import 'package:animal_conservation/services/user_manager.dart';
@@ -48,6 +49,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
   @override
   void dispose() {
     _statusCheckTimer?.cancel();
+    _loadingTimer?.cancel();
     super.dispose();
   }
 
@@ -158,6 +160,11 @@ class _GalleryScreenState extends State<GalleryScreen> {
     }
   }
 
+  double _loadingProgress = 0.0;
+  Timer? _loadingTimer;
+  DateTime? _loadingStartTime;
+
+
   Future<void> _processImages() async {
     if (_appImages.isEmpty) {
       _logDebug("No images available for analysis");
@@ -171,6 +178,29 @@ class _GalleryScreenState extends State<GalleryScreen> {
       _isProcessing = true;
       _analysisComplete = false;
       _submittedImages = [];
+      _loadingProgress = 0.0;
+      _loadingStartTime = DateTime.now();
+    });
+
+    // Start the loading timer with inverse progression
+    _loadingTimer?.cancel();
+    _loadingTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      final elapsedSeconds = DateTime.now().difference(_loadingStartTime!).inMilliseconds / 1000;
+
+      // Inverse formula: progress = 1 - (1 / (1 + rate * time))
+      // This will create the effect of slowing down as it progresses
+      // Rate of 0.1 means it takes ~5s to reach 50%, ~10s to reach 75%, ~15s to reach 87.5%, etc.
+      final newProgress = 1 - (1 / (1 + 0.075 * elapsedSeconds*elapsedSeconds));
+
+      setState(() {
+        _loadingProgress = newProgress;
+
+        // If actual processing completes, we'll cancel this in _checkDetectionStatus
+        // But we'll cap at 99% for visual purposes until real completion
+        if (_loadingProgress >= 0.99) {
+          _loadingProgress = 0.99;
+        }
+      });
     });
 
     try {
@@ -183,13 +213,14 @@ class _GalleryScreenState extends State<GalleryScreen> {
         _sessionId = response['session_id'];
         _logDebug("Got session ID: $_sessionId");
 
-        _statusCheckTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+        _statusCheckTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
           _checkDetectionStatus();
         });
       } else {
         throw Exception('Invalid response from server');
       }
     } catch (e) {
+      _loadingTimer?.cancel(); // Cancel loading timer on error
       _logDebug("Error processing images: $e");
       if (!mounted) return;
 
@@ -213,6 +244,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
         _logDebug("Processing complete, parsing results");
         _statusCheckTimer?.cancel();
         _statusCheckTimer = null;
+        _loadingTimer?.cancel(); // Cancel the loading timer when complete
 
         Map<String, String> labels = {};
         for (var result in statusResponse['results']) {
@@ -223,6 +255,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
           _animalLabels = labels;
           _analysisComplete = true;
           _isProcessing = false;
+          _loadingProgress = 1.0; // Jump to 100% when actually complete
         });
 
         _logDebug("Results parsed: ${labels.length} labels");
@@ -522,14 +555,12 @@ class _GalleryScreenState extends State<GalleryScreen> {
     }
 
     int blankImageCount = imagesToRemove
-        .where(
-            (image) => !successfullySubmitted.containsKey(image)
-    )
+        .where((image) => !successfullySubmitted.containsKey(image))
         .length;
 
     if (successfullySubmitted.isNotEmpty || blankImageCount > 0) {
       if (mounted) {
-        await _showSubmissionSummary(successfullySubmitted, 0); // todo make this 0 blank image count.
+        await _showSubmissionSummary(successfullySubmitted, 0);
       }
 
       for (var image in imagesToRemove) {
@@ -624,12 +655,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   )).toList(),
                   const SizedBox(height: 16),
                 ],
-
-                if (blankImageCount > 0)
-                  Text(
-                    '$blankImageCount blank images were not submitted and will be removed.',
-                    style: const TextStyle(fontStyle: FontStyle.italic),
-                  ),
               ],
             ),
           ),
@@ -665,9 +690,35 @@ class _GalleryScreenState extends State<GalleryScreen> {
         automaticallyImplyLeading: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadImagesFromStorage,
-            tooltip: 'Refresh Gallery',
+            icon: const Icon(Icons.delete),
+            onPressed: _appImages.isEmpty
+                ? null
+                : () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Delete Processed Images'),
+                  content: const Text('Do you want to delete all processed images?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _deleteProcessedImages();
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.red,
+                      ),
+                      child: const Text('Delete'),
+                    ),
+                  ],
+                ),
+              );
+            },
+            tooltip: 'Delete Processed Images',
           ),
           PopupMenuButton<String>(
             onSelected: (value) {
@@ -858,19 +909,20 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     foregroundColor: Colors.white,
                   ),
                   child: _isProcessing
-                      ? const Row(
+                      ? Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: LinearProgressIndicator(
+                          value: _loadingProgress,
+                          backgroundColor: Colors.white30,
                           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          minHeight: 8,
                         ),
                       ),
-                      SizedBox(width: 10),
-                      Text('Processing...'),
+                      const SizedBox(height: 4),
+                      Text('Processing... ${(_loadingProgress * 100).toInt()}%'),
                     ],
                   )
                       : const Text('Submit Findings!'),
@@ -880,6 +932,48 @@ class _GalleryScreenState extends State<GalleryScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _deleteProcessedImages() async {
+    try {
+      _logDebug("Manually deleting processed images");
+      List<File> imagesToRemove = [];
+
+      for (var imageFile in _appImages) {
+        if (_analysisComplete && _getAnimalLabel(imageFile) != 'Not analysed') {
+          imagesToRemove.add(imageFile);
+        }
+      }
+
+      if (imagesToRemove.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No processed images to delete')),
+        );
+        return;
+      }
+
+      for (var image in imagesToRemove) {
+        try {
+          await _storageManager.deleteImage(image);
+          _logDebug("Manually removed image: ${image.path}");
+        } catch (e) {
+          _logDebug("Error removing image manually: $e");
+        }
+      }
+
+      setState(() {
+        _appImages.removeWhere((image) => imagesToRemove.contains(image));
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Deleted ${imagesToRemove.length} processed images')),
+      );
+    } catch (e) {
+      _logDebug("Error in manual deletion: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting images: $e')),
+      );
+    }
   }
 
   void _showImageOptions(File imageFile, String animalLabel) {

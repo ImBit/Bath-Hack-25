@@ -1,0 +1,76 @@
+{
+    "predictions": [
+        {
+            "filepath": "uploaded_images/94769268-f3bb-4449-8291-7b1603b199de/animal_1743930940871_35.jpg",
+            "classifications": {
+                "classes": [
+                    "3eb4472d-b8da-4bd8-9533-7b9b4e844f6a;aves;anseriformes;anatidae;anas;platyrhynchos;mallard",
+                    "b1352069-a39c-4a84-a949-60044271c0c1;aves;;;;;bird",
+                    "f0a9f1ed-a1be-4faa-a68c-a370560ac4eb;aves;anseriformes;anatidae;;;anatidae family",
+                    "4e436540-aacc-409b-ad26-b31658bed1e3;aves;anseriformes;;;;anseriformes order",
+                    "6de041e9-509c-481b-9f7f-4c5e8c1d86bd;aves;anseriformes;anatidae;mareca;americana;american wigeon"
+                ],
+                "scores": [
+                    0.9926953315734863,
+                    0.004472644533962011,
+                    0.0015012298244982958,
+                    0.0006376482779160142,
+                    0.00021426640159916133
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.9785383343696594,
+                    "bbox": [
+                        0.356398805975914,
+                        0.2678571343421936,
+                        0.320932537317276,
+                        0.38955026865005493
+                    ]
+                }
+            ],
+            "prediction": "3eb4472d-b8da-4bd8-9533-7b9b4e844f6a;aves;anseriformes;anatidae;anas;platyrhynchos;mallard",
+            "prediction_score": 0.9926953315734863,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        },
+        {
+            "filepath": "uploaded_images/94769268-f3bb-4449-8291-7b1603b199de/animal_1743930992524_35.jpg",
+            "classifications": {
+                "classes": [
+                    "3eb4472d-b8da-4bd8-9533-7b9b4e844f6a;aves;anseriformes;anatidae;anas;platyrhynchos;mallard",
+                    "b1352069-a39c-4a84-a949-60044271c0c1;aves;;;;;bird",
+                    "f0a9f1ed-a1be-4faa-a68c-a370560ac4eb;aves;anseriformes;anatidae;;;anatidae family",
+                    "4e436540-aacc-409b-ad26-b31658bed1e3;aves;anseriformes;;;;anseriformes order",
+                    "6de041e9-509c-481b-9f7f-4c5e8c1d86bd;aves;anseriformes;anatidae;mareca;americana;american wigeon"
+                ],
+                "scores": [
+                    0.9926953315734863,
+                    0.004472644533962011,
+                    0.0015012298244982958,
+                    0.0006376482779160142,
+                    0.00021426640159916133
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.9785383343696594,
+                    "bbox": [
+                        0.356398805975914,
+                        0.2678571343421936,
+                        0.320932537317276,
+                        0.38955026865005493
+                    ]
+                }
+            ],
+            "prediction": "3eb4472d-b8da-4bd8-9533-7b9b4e844f6a;aves;anseriformes;anatidae;anas;platyrhynchos;mallard",
+            "prediction_score": 0.9926953315734863,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        }
+    ]
+}

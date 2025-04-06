@@ -2,6 +2,7 @@ import 'package:animal_conservation/database/database_management.dart';
 import 'package:animal_conservation/database/objects/photo_object.dart';
 import 'package:animal_conservation/services/user_manager.dart';
 import 'package:flutter/material.dart';
+import '../database/objects/user_object.dart';
 import '../widgets/bottom_navigation.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -16,8 +17,19 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   List<PhotoObject> userPhotos = [];
+  List<PhotoObject> allPhotos = [];
+  List<PhotoObject> displayedPhotos = [];
+  List<String> availableAnimals = [];
   bool isLoading = true;
   int? selectedMarkerIndex;
+  bool viewAllPhotos = false; // For admin toggle between all photos and personal photos
+  String? selectedAnimalFilter;
+
+  // Date range values
+  RangeValues _dateRangeValues = const RangeValues(0.0, 1.0);
+  DateTime? oldestPhotoDate;
+  DateTime? newestPhotoDate;
+  bool _filterExpanded = false; // Track if filter panel is expanded
 
   @override
   void initState() {
@@ -27,11 +39,46 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> loadPhotos() async {
     try {
-      var photos = await FirestoreService.getPhotosByUser(UserManager.getUserId());
       setState(() {
-        userPhotos = photos
-            .where((photo) => photo.getLatLng() != null)
-            .toList();
+        isLoading = true;
+      });
+
+      // Load user's photos first
+      var photos = await FirestoreService.getPhotosByUser(UserManager.getUserId());
+      userPhotos = photos.where((photo) => photo.getLatLng() != null).toList();
+      displayedPhotos = List.from(userPhotos);
+
+      // If user is staff, also load all photos but don't display them yet
+      if (UserManager.getCurrentUser?.isUserStaff() == true) {
+        allPhotos = await FirestoreService.getAllPhotos();
+        allPhotos = allPhotos.where((photo) => photo.getLatLng() != null).toList();
+      }
+
+      // Get all available animals for filtering (for all users)
+      Set<String> animalSet = {};
+      List<PhotoObject> photosToProcess = UserManager.getCurrentUser?.isUserStaff() == true ?
+      allPhotos : userPhotos;
+
+      for (var photo in photosToProcess) {
+        if (photo.animalClassification != null) {
+          final animalInfo = await FirestoreService.getAnimalById(photo.animalClassification!);
+          if (animalInfo != null && animalInfo.name != null) {
+            animalSet.add(animalInfo.name!);
+          }
+        }
+      }
+
+      availableAnimals = animalSet.toList();
+      availableAnimals.sort();
+
+      // Find oldest and newest photo dates for timeline slider
+      if (photosToProcess.isNotEmpty) {
+        photosToProcess.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+        oldestPhotoDate = photosToProcess.first.timestamp;
+        newestPhotoDate = photosToProcess.last.timestamp;
+      }
+
+      setState(() {
         isLoading = false;
       });
     } catch (e) {
@@ -40,6 +87,62 @@ class _MapScreenState extends State<MapScreen> {
         isLoading = false;
       });
     }
+  }
+
+  Future<void> _applyFilters() async {
+    List<PhotoObject> sourcePhotos;
+    if (UserManager.getCurrentUser?.isUserStaff() == true && viewAllPhotos) {
+      sourcePhotos = List.from(allPhotos);
+    } else {
+      sourcePhotos = List.from(userPhotos);
+    }
+
+    List<PhotoObject> filteredPhotos = List.from(sourcePhotos);
+
+    if (selectedAnimalFilter != null && selectedAnimalFilter!.isNotEmpty) {
+      List<PhotoObject> tempFilteredPhotos = [];
+
+      for (var photo in filteredPhotos) {
+        if (photo.animalClassification != null) {
+          final animalInfo = await FirestoreService.getAnimalById(photo.animalClassification!);
+          if (animalInfo != null && animalInfo.name == selectedAnimalFilter) {
+            tempFilteredPhotos.add(photo);
+          }
+        }
+      }
+
+      filteredPhotos = tempFilteredPhotos;
+    }
+
+    if (oldestPhotoDate != null && newestPhotoDate != null) {
+      final totalDurationMs = newestPhotoDate!.difference(oldestPhotoDate!).inMilliseconds;
+
+      final startDateMs = oldestPhotoDate!.millisecondsSinceEpoch +
+          (totalDurationMs * _dateRangeValues.start).round();
+      final endDateMs = oldestPhotoDate!.millisecondsSinceEpoch +
+          (totalDurationMs * _dateRangeValues.end).round();
+
+      final startDate = DateTime.fromMillisecondsSinceEpoch(startDateMs);
+      final endDate = DateTime.fromMillisecondsSinceEpoch(endDateMs);
+
+      filteredPhotos = filteredPhotos.where((photo) =>
+      photo.timestamp.isAfter(startDate) &&
+          photo.timestamp.isBefore(endDate)
+      ).toList();
+    }
+
+    setState(() {
+      displayedPhotos = filteredPhotos;
+    });
+  }
+
+  // Toggle between all photos and personal photos (for staff only)
+  void _toggleViewAll() {
+    setState(() {
+      viewAllPhotos = !viewAllPhotos;
+    });
+
+    _applyFilters();
   }
 
   Future<Color> _getMarkerColor(PhotoObject photo) async {
@@ -58,6 +161,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _showAnimalDetails(PhotoObject photo) {
+    // Same as before
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -97,6 +201,16 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text('Date: ${photo.timestamp.toString().split('.')[0]}'),
+                  if (viewAllPhotos && photo.userId != null)
+                    FutureBuilder<UserObject?>(
+                        future: FirestoreService.getUserById(photo.userId!),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData && snapshot.data != null) {
+                            return Text('Submitted by: ${snapshot.data!.username}');
+                          }
+                          return const SizedBox();
+                        }
+                    ),
                   if (photo.animalClassification != null)
                     FutureBuilder<AnimalObject?>(
                       future: FirestoreService.getAnimalById(photo.animalClassification!),
@@ -163,60 +277,258 @@ class _MapScreenState extends State<MapScreen> {
       appBar: AppBar(
         title: const Text('Map'),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-      ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : FlutterMap(
-        options: MapOptions(
-          initialCenter: userPhotos.isNotEmpty && userPhotos.first.getLatLng() != null
-              ? userPhotos.first.getLatLng()!
-              : const LatLng(51.380007, -2.325986),
-          initialZoom: 9.2,
-        ),
-        children: [
-          TileLayer(
-            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-            userAgentPackageName: 'com.example.app',
+        actions: [
+          // Filter button for all users
+          IconButton(
+            icon: Icon(
+              Icons.filter_list,
+              color: _filterExpanded ? Colors.amber : Colors.white,
+            ),
+            tooltip: _filterExpanded ? 'Hide Filters' : 'Show Filters',
+            onPressed: () {
+              setState(() {
+                _filterExpanded = !_filterExpanded;
+              });
+            },
           ),
-          MarkerLayer(
-            alignment: Alignment.topCenter,
-            markers: List.generate(userPhotos.length, (index) {
-              final photo = userPhotos[index];
-              final location = photo.getLatLng()!;
+        ],
+      ),
+      body: Column(
+        children: [
+          // Filter controls section - available to all users
+          if (_filterExpanded) _buildFilterControls(),
 
-              return Marker(
-                point: location,
-                width: 60,
-                height: 60,
-                rotate: false,
-                child: FutureBuilder<Color>(
-                    future: selectedMarkerIndex == index
-                        ? _getMarkerColor(photo)
-                        : Future.value(Colors.white),
-                    builder: (context, snapshot) {
-                      return FixedRotationMarker(
-                        normalWidth: 60,
-                        normalHeight: 60,
-                        pressedWidth: 160,
-                        pressedHeight: 160,
-                        imagePath: 'assets/Marker.png',
-                        markerColor: snapshot.data ?? Colors.white,
-                        onPressed: () {
-                          setState(() {
-                            selectedMarkerIndex = index;
-                          });
-                          _showAnimalDetails(photo);
-                        },
-                      );
-                    }
+          // Map view
+          Expanded(
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : FlutterMap(
+              options: MapOptions(
+                initialCenter: displayedPhotos.isNotEmpty && displayedPhotos.first.getLatLng() != null
+                    ? displayedPhotos.first.getLatLng()!
+                    : const LatLng(51.380007, -2.325986),
+                initialZoom: 9.2,
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.example.app',
                 ),
-              );
-            }),
+                MarkerLayer(
+                  alignment: Alignment.topCenter,
+                  markers: List.generate(displayedPhotos.length, (index) {
+                    final photo = displayedPhotos[index];
+                    final location = photo.getLatLng()!;
+
+                    return Marker(
+                      point: location,
+                      width: 60,
+                      height: 60,
+                      rotate: false,
+                      child: FutureBuilder<Color>(
+                          future: selectedMarkerIndex == index
+                              ? _getMarkerColor(photo)
+                              : Future.value(Colors.white),
+                          builder: (context, snapshot) {
+                            return FixedRotationMarker(
+                              normalWidth: 60,
+                              normalHeight: 60,
+                              pressedWidth: 160,
+                              pressedHeight: 160,
+                              imagePath: 'assets/Marker.png',
+                              markerColor: snapshot.data ?? Colors.white,
+                              onPressed: () {
+                                setState(() {
+                                  selectedMarkerIndex = index;
+                                });
+                                _showAnimalDetails(photo);
+                              },
+                            );
+                          }
+                      ),
+                    );
+                  }),
+                ),
+              ],
+            ),
           ),
         ],
       ),
       bottomNavigationBar: const CustomBottomNavigation(currentIndex: 0),
     );
+  }
+
+  // Build the filter controls section with dropdown, range slider, and admin toggle
+  Widget _buildFilterControls() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      color: Colors.grey.shade200,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with filter icon and animal dropdown
+          Row(
+            children: [
+              const Icon(Icons.filter_list, size: 16.0, color: Colors.blue),
+              const SizedBox(width: 4.0),
+              Text(
+                'Filter Controls',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
+              const Spacer(),
+              // Admin toggle for all/personal photos
+              if (UserManager.getCurrentUser?.isUserStaff() == true)
+                Row(
+                  children: [
+                    const Text('View All Photos'),
+                    Switch(
+                      value: viewAllPhotos,
+                      onChanged: (value) {
+                        _toggleViewAll();
+                      },
+                      activeColor: Theme.of(context).primaryColor,
+                    ),
+                  ],
+                ),
+            ],
+          ),
+
+          // Animal filter dropdown
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: DropdownButton<String>(
+              value: selectedAnimalFilter,
+              hint: const Text('Filter by animal'),
+              isDense: true,
+              isExpanded: true,
+              icon: const Icon(Icons.pets),
+              items: [
+                const DropdownMenuItem<String>(
+                  value: '',
+                  child: Text('All animals'),
+                ),
+                ...availableAnimals.map((animal) => DropdownMenuItem<String>(
+                  value: animal,
+                  child: Text(animal),
+                )).toList(),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  selectedAnimalFilter = value;
+                });
+                _applyFilters();
+              },
+            ),
+          ),
+
+          // Date range labels
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Date Range:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                ),
+                Text(_getDateRangeLabel()),
+              ],
+            ),
+          ),
+
+          // Date range slider
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: RangeSlider(
+              values: _dateRangeValues,
+              min: 0.0,
+              max: 1.0,
+              divisions: 50,
+              labels: RangeLabels(
+                _getDateLabel(_dateRangeValues.start),
+                _getDateLabel(_dateRangeValues.end),
+              ),
+              onChanged: (RangeValues values) {
+                setState(() {
+                  _dateRangeValues = values;
+                });
+              },
+              onChangeEnd: (RangeValues values) {
+                _applyFilters();
+              },
+            ),
+          ),
+
+          // Date range markers
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  oldestPhotoDate != null
+                      ? _formatDate(oldestPhotoDate!)
+                      : 'Oldest',
+                  style: const TextStyle(fontSize: 12.0),
+                ),
+                Text(
+                  newestPhotoDate != null
+                      ? _formatDate(newestPhotoDate!)
+                      : 'Newest',
+                  style: const TextStyle(fontSize: 12.0),
+                ),
+              ],
+            ),
+          ),
+
+          // Count of displayed photos
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(
+                '${displayedPhotos.length} photos displayed',
+                style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 12.0),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Format date to human-readable string
+  String _formatDate(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  // Get human-readable label for the current date range
+  String _getDateRangeLabel() {
+    if (oldestPhotoDate == null || newestPhotoDate == null) return '';
+
+    final startDate = _getDateFromValue(_dateRangeValues.start);
+    final endDate = _getDateFromValue(_dateRangeValues.end);
+
+    return '${_formatDate(startDate)} to ${_formatDate(endDate)}';
+  }
+
+  // Get a specific date label for a slider position
+  String _getDateLabel(double value) {
+    if (oldestPhotoDate == null || newestPhotoDate == null) return '';
+    return _formatDate(_getDateFromValue(value));
+  }
+
+  // Convert a slider value (0-1) to a specific date
+  DateTime _getDateFromValue(double value) {
+    final totalDurationMs = newestPhotoDate!.difference(oldestPhotoDate!).inMilliseconds;
+    final dateMs = oldestPhotoDate!.millisecondsSinceEpoch +
+        (totalDurationMs * value).round();
+    return DateTime.fromMillisecondsSinceEpoch(dateMs);
   }
 }
 

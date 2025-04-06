@@ -1,0 +1,62 @@
+{
+    "predictions": [
+        {
+            "filepath": "uploaded_images/5a52bc98-a415-40e9-8937-7a89bb2d6e3a/animal_1743931065154_33.jpg",
+            "classifications": {
+                "classes": [
+                    "b1352069-a39c-4a84-a949-60044271c0c1;aves;;;;;bird",
+                    "96fe1a07-7ef1-4a2f-99e1-ec2c9a78b532;aves;pelecaniformes;ardeidae;ardea;herodias;great blue heron",
+                    "07c593cb-bfa3-4cdd-9cdf-403f0c3e62ed;aves;pelecaniformes;ardeidae;;;ardeidae family",
+                    "4adcb4cf-9ed3-4596-9f56-931ed644007e;reptilia;testudines;;;;turtle order",
+                    "4ae3b7b9-5082-4320-b216-a0aa6e60c97e;aves;pelecaniformes;ardeidae;cochlearius;cochlearius;boat-billed heron"
+                ],
+                "scores": [
+                    0.48252442479133606,
+                    0.07616014778614044,
+                    0.031573206186294556,
+                    0.02330930344760418,
+                    0.015733027830719948
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.9779815077781677,
+                    "bbox": [
+                        0.3824404776096344,
+                        0.30224865674972534,
+                        0.3933531641960144,
+                        0.4722222089767456
+                    ]
+                },
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.183439239859581,
+                    "bbox": [
+                        0.6438492015004158,
+                        0.8078703433275223,
+                        0.0902777761220932,
+                        0.05423280596733093
+                    ]
+                },
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.040360476821660995,
+                    "bbox": [
+                        0.6431051343679428,
+                        0.7916666604578495,
+                        0.1495535671710968,
+                        0.07605820149183273
+                    ]
+                }
+            ],
+            "prediction": "1f689929-883d-4dae-958c-3d57ab5b6c16;;;;;;animal",
+            "prediction_score": 0.9779815077781677,
+            "prediction_source": "detector",
+            "model_version": "4.0.0a"
+        }
+    ]
+}

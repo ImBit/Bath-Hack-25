@@ -1,0 +1,40 @@
+{
+    "predictions": [
+        {
+            "filepath": "uploaded_images/236fa869-1bb4-47ae-9d84-248e3b0ff264/animal_1743931111849_34.jpg",
+            "classifications": {
+                "classes": [
+                    "86f5b978-4f30-40cc-bd08-be9e3fba27a0;mammalia;rodentia;sciuridae;sciurus;carolinensis;eastern gray squirrel",
+                    "d01f67fd-836b-4b25-89fc-2239e59f56b0;mammalia;rodentia;sciuridae;otospermophilus;beecheyi;california ground squirrel",
+                    "e07c537d-08b8-4c31-9768-51e4adf5a5ab;mammalia;rodentia;sciuridae;sciurus;niger;eastern fox squirrel",
+                    "90d950db-2106-4bd9-a4c1-777604c3eada;mammalia;rodentia;;;;rodent",
+                    "e4d1e892-0e4b-475a-a8ac-b5c3502e0d55;mammalia;rodentia;sciuridae;;;sciuridae family"
+                ],
+                "scores": [
+                    0.9417489171028137,
+                    0.011593936942517757,
+                    0.008927181363105774,
+                    0.007312120869755745,
+                    0.0068701994605362415
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.9344482421875,
+                    "bbox": [
+                        0.4888392984867096,
+                        0.22982805222272873,
+                        0.3469741940498352,
+                        0.18981482088565826
+                    ]
+                }
+            ],
+            "prediction": "86f5b978-4f30-40cc-bd08-be9e3fba27a0;mammalia;rodentia;sciuridae;sciurus;carolinensis;eastern gray squirrel",
+            "prediction_score": 0.9417489171028137,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        }
+    ]
+}

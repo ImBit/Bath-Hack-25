@@ -1,0 +1,40 @@
+{
+    "predictions": [
+        {
+            "filepath": "uploaded_images/02c16e0d-c4ce-4bbd-a2cc-3facbeaaa9ce/animal_1743931311876_36.jpg",
+            "classifications": {
+                "classes": [
+                    "359c0d8d-17e8-47bd-baa2-ff2c8bc0a046;aves;anseriformes;anatidae;branta;;branta species",
+                    "4adcb4cf-9ed3-4596-9f56-931ed644007e;reptilia;testudines;;;;turtle order",
+                    "3eb4472d-b8da-4bd8-9533-7b9b4e844f6a;aves;anseriformes;anatidae;anas;platyrhynchos;mallard",
+                    "6de041e9-509c-481b-9f7f-4c5e8c1d86bd;aves;anseriformes;anatidae;mareca;americana;american wigeon",
+                    "b1352069-a39c-4a84-a949-60044271c0c1;aves;;;;;bird"
+                ],
+                "scores": [
+                    0.5212526321411133,
+                    0.08929482847452164,
+                    0.07912632822990417,
+                    0.06020369008183479,
+                    0.0510265938937664
+                ]
+            },
+            "detections": [
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.9529120922088623,
+                    "bbox": [
+                        0.26411421597003937,
+                        0.3494809865951538,
+                        0.4172615110874176,
+                        0.3451557159423828
+                    ]
+                }
+            ],
+            "prediction": "f0a9f1ed-a1be-4faa-a68c-a370560ac4eb;aves;anseriformes;anatidae;;;anatidae family",
+            "prediction_score": 0.6605826504528522,
+            "prediction_source": "classifier+rollup_to_family",
+            "model_version": "4.0.0a"
+        }
+    ]
+}

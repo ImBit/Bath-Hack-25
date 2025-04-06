@@ -1,0 +1,51 @@
+{
+    "predictions": [
+        {
+            "filepath": "uploaded_images/7c09fe1e-16c8-4e1f-8c26-1bab21a5bf3a/animal_1743927870352_CAP7531793353717825302.jpg",
+            "classifications": {
+                "classes": [
+                    "f1856211-cfb7-4a5b-9158-c0f72fd09ee6;;;;;;blank",
+                    "aca65aaa-8c6d-4b69-94de-842b08b13bd6;mammalia;cetartiodactyla;bovidae;bos;taurus;domestic cattle",
+                    "436ddfdd-bc43-44c3-a25d-34671d3430a0;mammalia;carnivora;ursidae;ursus;americanus;american black bear",
+                    "09fbf931-bbf0-4959-9df6-1082db578281;mammalia;cetartiodactyla;bovidae;connochaetes;taurinus;common wildebeest",
+                    "b1352069-a39c-4a84-a949-60044271c0c1;aves;;;;;bird"
+                ],
+                "scores": [
+                    0.9885385632514954,
+                    0.007674071937799454,
+                    0.0004860062035731971,
+                    0.00047552495379932225,
+                    0.00025492857093922794
+                ]
+            },
+            "detections": [
+                {
+                    "category": "3",
+                    "label": "vehicle",
+                    "conf": 0.053521376103162766,
+                    "bbox": [
+                        0.002777785062789917,
+                        0.0,
+                        0.9972222447395325,
+                        0.9273437261581421
+                    ]
+                },
+                {
+                    "category": "1",
+                    "label": "animal",
+                    "conf": 0.021066926419734955,
+                    "bbox": [
+                        0.004166692495346069,
+                        0.0,
+                        0.9944444298744202,
+                        0.8960937261581421
+                    ]
+                }
+            ],
+            "prediction": "f1856211-cfb7-4a5b-9158-c0f72fd09ee6;;;;;;blank",
+            "prediction_score": 0.9885385632514954,
+            "prediction_source": "classifier",
+            "model_version": "4.0.0a"
+        }
+    ]
+}
