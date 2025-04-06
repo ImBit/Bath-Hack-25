@@ -23,11 +23,64 @@ class ProfileScreen extends StatelessWidget {
                   backgroundImage: UserManager.getActiveUserProfilePicture(),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
-                  child: Text(
-                    'Heath',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
+                Expanded(
+                  child: Row(
+                    children: [
+                      const Flexible(
+                        child: Text(
+                          'Heath',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () {
+                          // Handle edit profile action
+                          showDialog<String>(
+                            context: context,
+                            builder: (BuildContext context) => Dialog(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget>[
+                                    // const Text('Set username:'),
+                                    // Text box
+                                    const TextField(
+                                      decoration: InputDecoration(
+                                        hintText: 'Enter your username',
+                                      ),
+                                    ),
+                                    const SizedBox(height: 15),
+                                    Row(
+                                      children: [
+                                        const Spacer(),
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            // Handle save action
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text('Save'),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(
