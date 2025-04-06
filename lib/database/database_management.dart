@@ -63,17 +63,23 @@ class FirestoreService {
   static Future<String?> saveUser(UserObject user) async {
     final db = await _db;
     try {
-      if (user.id != null) {
-        // Update existing user
-        await db.collection("users").doc(user.id).update(user.toMap());
-        return user.id;
+      if (user.id != null && user.id!.isNotEmpty) {
+        // First check if the document exists before updating
+        final docSnapshot = await db.collection("users").doc(user.id).get();
+
+        if (docSnapshot.exists) {
+          await db.collection("users").doc(user.id).update(user.toMap());
+          return user.id;
+        } else {
+          // If document doesn't exist, create it with the provided ID
+          await db.collection("users").doc(user.id).set(user.toMap());
+          return user.id;
+        }
       } else {
-        // Check if username already exists
         if (!await isUsernameAvailable(user.username)) {
           print("Username already taken");
           return null;
         }
-        // Create new user
         final docRef = await db.collection("users").add(user.toMap());
         return docRef.id;
       }
@@ -95,6 +101,26 @@ class FirestoreService {
       return querySnapshot.docs.isEmpty;
     } catch (e) {
       print("Error checking username availability: $e");
+      return false;
+    }
+  }
+
+  static Future<bool> updateUsername(String userId, String newUsername) async {
+    final db = await _db;
+    try {
+      // First check if the new username is already taken
+      if (!await isUsernameAvailable(newUsername)) {
+        print("Username already taken");
+        return false;
+      }
+
+      // Update the username in Firestore
+      await db.collection("users").doc(userId).update({
+        'username': newUsername
+      });
+      return true;
+    } catch (e) {
+      print("Error updating username: $e");
       return false;
     }
   }

@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
+import '../database/database_management.dart';
+import '../database/objects/user_object.dart';
 import '../services/user_manager.dart';
 import '../widgets/bottom_navigation.dart';
 
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({Key? key}) : super(key: key);
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
@@ -26,17 +34,21 @@ class ProfileScreen extends StatelessWidget {
                 Expanded(
                   child: Row(
                     children: [
-                      const Flexible(
+                      Flexible(
                         child: Text(
-                          'Heath',
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
+                          UserManager.getCurrentUser!.username ?? 'Guest',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.edit),
                         onPressed: () {
+                          // Create a text editing controller with the current username
+                          final TextEditingController usernameController = TextEditingController(
+                              text: UserManager.getCurrentUser!.username ?? 'Guest'
+                          );
+
                           // Handle edit profile action
                           showDialog<String>(
                             context: context,
@@ -47,11 +59,17 @@ class ProfileScreen extends StatelessWidget {
                                   mainAxisSize: MainAxisSize.min,
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: <Widget>[
-                                    // const Text('Set username:'),
-                                    // Text box
-                                    const TextField(
-                                      decoration: InputDecoration(
-                                        hintText: 'Enter your username',
+                                    const Text(
+                                      'Update Username',
+                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    TextField(
+                                      controller: usernameController,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Username',
+                                        hintText: 'Enter your new username',
+                                        border: OutlineInputBorder(),
                                       ),
                                     ),
                                     const SizedBox(height: 15),
@@ -65,9 +83,74 @@ class ProfileScreen extends StatelessWidget {
                                           child: const Text('Cancel'),
                                         ),
                                         TextButton(
-                                          onPressed: () {
-                                            // Handle save action
-                                            Navigator.pop(context);
+                                          onPressed: () async {
+                                            // Get current user ID
+                                            final currentUser = UserManager.getCurrentUser!;
+                                            if (currentUser.id != null) {
+                                              final newUsername = usernameController.text.trim();
+
+                                              if (newUsername.isEmpty) {
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                    const SnackBar(content: Text('Username cannot be empty'))
+                                                );
+                                                return;
+                                              }
+
+                                              // Show loading indicator
+                                              showDialog(
+                                                context: context,
+                                                barrierDismissible: false,
+                                                builder: (BuildContext context) => const Center(
+                                                  child: CircularProgressIndicator(),
+                                                ),
+                                              );
+
+                                              // Update username in Firestore
+                                              final success = await FirestoreService.updateUsername(
+                                                  currentUser.id!,
+                                                  newUsername
+                                              );
+
+                                              // Close loading dialog
+                                              Navigator.pop(context);
+
+                                              if (success) {
+                                                // Update current user in UserManager
+                                                UserManager.setCurrentUser(
+                                                    UserObject(
+                                                      id: currentUser.id,
+                                                      username: newUsername,
+                                                      password: currentUser.password,
+                                                      // Include any other fields your UserObject has
+                                                    )
+                                                );
+
+                                                // Close the edit dialog
+                                                Navigator.pop(context);
+
+                                                // Add setState to trigger UI update
+                                                setState(() {
+                                                  // The setState will cause the widget to rebuild
+                                                  // with the new username from UserManager
+                                                });
+
+                                                // Show success message
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                    const SnackBar(content: Text('Username updated successfully'))
+                                                );
+                                              } else {
+                                                // Show error message
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                    const SnackBar(content: Text('Username is already taken'))
+                                                );
+                                              }
+                                            } else {
+                                              // Handle case when user is not logged in
+                                              Navigator.pop(context);
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                  const SnackBar(content: Text('You need to be logged in to update your username'))
+                                              );
+                                            }
                                           },
                                           child: const Text('Save'),
                                         ),

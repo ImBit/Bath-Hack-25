@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:animal_conservation/screens/journal_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -54,6 +55,7 @@ class AnimalDatabasePopulator {
       id: id,
       name: name,
       species: species,
+      rarity: Rarity.common.name,
       description: description
     );
   }

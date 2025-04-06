@@ -78,7 +78,7 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> loadLocations() async {
     try {
-      var photos = await FirestoreService.getPhotosByUser(UserManager.getUserId());
+      var photos = await FirestoreService.getPhotosByUser("be6dd22e-ddb2-4469-b366-12de14a3a501"); //UserManager.getUserId()
       setState(() {
         photoLocations = photos
             .map((photo) => photo.getLatLng())

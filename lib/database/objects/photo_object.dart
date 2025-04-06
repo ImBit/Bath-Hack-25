@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../screens/journal_screen.dart';
 
 class PhotoObject {
   String? id;
@@ -98,6 +99,7 @@ class AnimalObject {
   final String name;
   final String species;
   final String description;
+  final String rarity;
   final String? encryptedImageData; // Base64 encoded encrypted image data
 
   AnimalObject({
@@ -105,6 +107,7 @@ class AnimalObject {
     required this.name,
     required this.species,
     required this.description,
+    required this.rarity,
     this.encryptedImageData,
   });
 
@@ -114,6 +117,7 @@ class AnimalObject {
       'name': name,
       'species': species,
       'description': description,
+      'rarity': rarity,
       'encryptedExampleImageData': encryptedImageData
     };
   }
@@ -125,8 +129,28 @@ class AnimalObject {
       name: map['name'] ?? '',
       species: map['species'] ?? '',
       description: map['description'] ?? '',
-      encryptedImageData: map['encryptedExampleImageData']
+      rarity: map['rarity'] ?? '',
+      encryptedImageData: map['encryptedExampleImageData'],
     );
+  }
+
+  static Rarity fromString(String rarity) {
+    switch (rarity.toLowerCase()) {
+      case 'common': // Rarity.common.name
+        return Rarity.common;
+      case 'uncommon': // Rarity.uncommon.name
+        return Rarity.uncommon;
+      case 'rare': // Rarity.rare.name
+        return Rarity.rare;
+      case 'legendary': // Rarity.legendary.name
+        return Rarity.legendary;
+      default:
+        throw ArgumentError('Unknown rarity: $rarity');
+    }
+  }
+
+  String toReadableString() {
+    return toString().split('.').last.replaceAll('_', ' ');
   }
 
   ImageProvider? getImageProvider() {
@@ -145,6 +169,6 @@ class AnimalObject {
   @override
   String toString() {
     return 'AnimalObject(id: $id, name: $name, species: $species, '
-        'description: $description, hasExampleImage: ${encryptedImageData != null}';
+        'description: $description, rarity: $rarity, hasExampleImage: ${encryptedImageData != null})';
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:animal_conservation/screens/journal_screen.dart';
 import 'package:animal_conservation/services/user_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -585,6 +586,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
           name: animalLabel,
           species: animalLabel,
           description: "Detected on $currentDateTime UTC",
+          rarity: Rarity.common.name,
           encryptedImageData: null,
         );
         _logDebug("Created new animal object: ${existingAnimal.name}");
