@@ -1,0 +1,10 @@
+Essential:
+ Image editing in profile
+ Precise mapping for markers
+ Edit bio in profile
+ Have a loading bar within the submission page.
+
+
+
+Optional:
+ Settings page?

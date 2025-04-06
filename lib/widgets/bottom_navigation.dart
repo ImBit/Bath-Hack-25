@@ -32,7 +32,7 @@ class CustomBottomNavigation extends StatelessWidget {
           const JournalView(),
           const CameraScreen(),
           const ProfileScreen(),
-          const GalleryScreen(),
+          const ProfileScreen(),
         ];
 
         Navigator.pushReplacement(

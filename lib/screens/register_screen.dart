@@ -22,32 +22,6 @@ class _LoginScreenState extends State<RegisterScreen> {
   final RegExp _passwordVal = RegExp(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).+$');
   final Uuid _uuid = Uuid();
 
-  Future<void> _validateUsername() async {
-    if (_username.toLowerCase() == "dev") {
-      setState(() {
-        _usernameError = null;
-      });
-      return;
-    } else if (_username.isEmpty) {
-      setState(() {
-        _usernameError = "Username cannot be empty";
-      });
-      return;
-    }
-
-    // Run the async check outside of setState
-    bool isAvailable = await FirestoreService.isUsernameAvailable(_username);
-
-    // Then update the state with the result
-    setState(() {
-      if (!isAvailable) {
-        _usernameError = "Username already exists";
-      } else {
-        _usernameError = null;
-      }
-    });
-}
-
   void _validatePassword() {
     setState(() {
       if (_username.toLowerCase() == "dev") {
@@ -62,12 +36,53 @@ class _LoginScreenState extends State<RegisterScreen> {
     });
   }
 
+  Future<void> _validateUsername() async {
+    if (_username.toLowerCase() == "dev") {
+      setState(() {
+        _usernameError = null;
+      });
+      return;
+    } else if (_username.isEmpty) {
+      setState(() {
+        _usernameError = "Username cannot be empty";
+      });
+      return;
+    }
+
+    setState(() {
+      _usernameError = null;
+    });
+  }
+
   Future<void> _submitForm() async {
     await _validateUsername();
     _validatePassword();
 
     if (_usernameError == null && (_passwordError == null || _username.toLowerCase() == "dev")) {
-      if (_username.toLowerCase() != "dev") {
+      if (_username.toLowerCase() == "dev") {
+        Navigator.pushReplacementNamed(context, AppRoutes.camera);
+        return;
+      }
+
+      // Check if username exists
+      bool usernameExists = !await FirestoreService.isUsernameAvailable(_username);
+
+      if (usernameExists) {
+        // Username exists - try to login
+        UserObject? existingUser = await FirestoreService.getUserByUsername(_username);
+
+        if (existingUser != null && existingUser.password == _password) {
+          // Password matches - log in
+          UserManager.setCurrentUser(existingUser);
+          Navigator.pushReplacementNamed(context, AppRoutes.camera);
+        } else {
+          // Password doesn't match
+          setState(() {
+            _passwordError = "Password incorrect";
+          });
+        }
+      } else {
+        // Username doesn't exist - create new account
         UserObject user = UserObject(
           id: _uuid.v4(),
           username: _username,
@@ -75,8 +90,8 @@ class _LoginScreenState extends State<RegisterScreen> {
         );
         UserManager.setCurrentUser(user);
         await FirestoreService.saveUser(user);
+        Navigator.pushReplacementNamed(context, AppRoutes.camera);
       }
-      Navigator.pushReplacementNamed(context, AppRoutes.camera);
     }
   }
 

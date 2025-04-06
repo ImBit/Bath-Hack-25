@@ -23,10 +23,12 @@ dependencies:
   http: ^1.1.0
   flutter_map: ^8.1.1
   latlong2: ^0.9.1
-  geolocator: ^10.0.0
+  geolocator: ^13.0.4
+#  geolocator_android: ^5.0.1
   flutter_markdown_plus: ^1.0.3
   flutter_svg_provider: ^1.0.7
-  uuid: ^3.0.6
+  image: ^4.5.4
+  cached_network_image: ^3.3.0
 
 dev_dependencies:
   flutter_test:
@@ -47,3 +49,4 @@ flutter:
     - assets/images/star_pattern.png
     - assets/images/dot.png
     - assets/Marker.png
+    - assets/images/placeholder_animal.png

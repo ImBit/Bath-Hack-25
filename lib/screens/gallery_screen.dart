@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:animal_conservation/screens/journal_screen.dart';
+import 'package:animal_conservation/services/image_encryptor.dart';
 import 'package:animal_conservation/services/user_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,10 +10,11 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import '../database/database_management.dart';
 import '../database/objects/photo_object.dart';
+import '../services/animalcreatorservice.dart';
 import '../services/api_service.dart';
 import '../services/location_manager.dart';
+import '../utils/rarity.dart';
 import '../utils/storage_manager.dart';
-import '../widgets/bottom_navigation.dart';
 
 class GalleryScreen extends StatefulWidget {
   const GalleryScreen({super.key});
@@ -34,11 +37,11 @@ class _GalleryScreenState extends State<GalleryScreen> {
   String _debugLogs = '';
   bool _isLoading = true;
   bool _isImageChanged = false;
+  List<File> _submittedImages = [];
 
   @override
   void initState() {
     super.initState();
-    // Load images from storage on startup
     _loadImagesFromStorage();
   }
 
@@ -61,7 +64,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
     });
   }
 
-  // Enhanced method to load images from storage with error handling
   Future<void> _loadImagesFromStorage() async {
     setState(() {
       _isLoading = true;
@@ -79,7 +81,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
       _logDebug("Successfully loaded ${images.length} images from StorageManager");
 
-      // If we have images loaded but no labels, reset analysis state
       if (images.isNotEmpty && _animalLabels.isEmpty) {
         setState(() {
           _analysisComplete = false;
@@ -89,7 +90,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       _logDebug("Error loading images from StorageManager: $e");
       setState(() {
         _isLoading = false;
-        _appImages = []; // Reset to empty list on error
+        _appImages = [];
       });
 
       if (!mounted) return;
@@ -105,160 +106,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
     }
   }
 
-  Future<void> _requestPermissions(PermissionType type) async {
-    // List<Permission> permissions = [];
-    //
-    // switch (type) {
-    //   case PermissionType.camera:
-    //     permissions = [Permission.camera];
-    //     break;
-    //   case PermissionType.gallery:
-    //     permissions = [Permission.photos, Permission.storage];
-    //     break;
-    // }
-    //
-    // Map<Permission, PermissionStatus> statuses = await permissions.request();
-    //
-    // for (var permission in permissions) {
-    //   if (statuses[permission]!.isPermanentlyDenied) {
-    //     _logDebug("${permission.toString()} permission permanently denied");
-    //     if (!mounted) return;
-    //
-    //     ScaffoldMessenger.of(context).showSnackBar(
-    //       SnackBar(
-    //         content: Text('${permission.toString()} permission is permanently denied. Please enable it from app settings.'),
-    //         duration: const Duration(seconds: 5),
-    //         action: SnackBarAction(
-    //           label: 'Settings',
-    //           onPressed: () => openAppSettings(),
-    //         ),
-    //       ),
-    //     );
-    //   }
-    // }
-  }
-
-  // Enhanced camera capture with explicit storage manager usage
-  Future<void> _takePhoto() async {
-    await _requestPermissions(PermissionType.camera);
-
-    try {
-      _logDebug("Opening camera");
-      final XFile? image = await _picker.pickImage(source: ImageSource.camera);
-
-      if (image != null) {
-        _logDebug("Photo captured: ${image.path}");
-
-        // Save to StorageManager
-        final savedFile = await _storageManager.saveImage(File(image.path));
-        _logDebug("Image saved to StorageManager at: ${savedFile.path}");
-
-        setState(() {
-          _appImages.add(savedFile);
-          _isImageChanged = true;
-          // Reset analysis state when new image is added
-          _analysisComplete = false;
-          _animalLabels = {};
-        });
-
-        // Show success notification
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Photo saved to app storage')),
-          );
-        }
-      }
-    } catch (e) {
-      _logDebug("Error taking photo: $e");
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error taking photo: $e')),
-      );
-    }
-  }
-
-  // Enhanced gallery import with explicit storage manager usage
-  Future<void> _pickImagesFromGallery() async {
-    await _requestPermissions(PermissionType.gallery);
-
-    try {
-      _logDebug("Opening image picker");
-      final List<XFile> images = await _picker.pickMultiImage();
-      _logDebug("Picked ${images.length} images from gallery");
-
-      if (images.isNotEmpty) {
-        List<File> savedFiles = [];
-
-        // Show progress indicator for multiple images
-        if (mounted && images.length > 3) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => AlertDialog(
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const CircularProgressIndicator(),
-                  const SizedBox(height: 16),
-                  Text("Importing ${images.length} images to storage..."),
-                ],
-              ),
-            ),
-          );
-        }
-
-        // Save all images to StorageManager
-        for (var image in images) {
-          _logDebug("Saving image to StorageManager: ${image.path}");
-          final savedFile = await _storageManager.saveImage(File(image.path));
-          savedFiles.add(savedFile);
-        }
-
-        // Dismiss dialog if showing
-        if (mounted && images.length > 3) {
-          Navigator.of(context).pop();
-        }
-
-        setState(() {
-          _appImages.addAll(savedFiles);
-          _isImageChanged = true;
-          // Reset analysis state when new images are added
-          _analysisComplete = false;
-          _animalLabels = {};
-          _sessionId = '';
-        });
-
-        if (_statusCheckTimer != null) {
-          _statusCheckTimer!.cancel();
-          _statusCheckTimer = null;
-        }
-
-        _logDebug("Added ${savedFiles.length} images to StorageManager");
-
-        // Show success notification
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${savedFiles.length} images imported to app storage')),
-          );
-        }
-      }
-    } catch (e) {
-      _logDebug("Error picking images from gallery: $e");
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error importing images: $e')),
-      );
-    }
-  }
-
-  // Clear all images from storage manager
   Future<void> _clearAllImages() async {
     try {
       _logDebug("Clearing all images from StorageManager");
 
-      // Show confirmation dialog
       bool confirmed = await showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -282,7 +133,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
       if (!confirmed) return;
 
-      // Clear all images from storage
       await _storageManager.clearAllImages();
 
       setState(() {
@@ -320,12 +170,12 @@ class _GalleryScreenState extends State<GalleryScreen> {
     setState(() {
       _isProcessing = true;
       _analysisComplete = false;
+      _submittedImages = [];
     });
 
     try {
       _logDebug("Sending ${_appImages.length} images to API for analysis");
 
-      // Send images to API
       final response = await _api.startDetection(_appImages);
       _logDebug("API response: $response");
 
@@ -333,7 +183,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
         _sessionId = response['session_id'];
         _logDebug("Got session ID: $_sessionId");
 
-        // Start polling for results
         _statusCheckTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
           _checkDetectionStatus();
         });
@@ -365,7 +214,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
         _statusCheckTimer?.cancel();
         _statusCheckTimer = null;
 
-        // Parse results
         Map<String, String> labels = {};
         for (var result in statusResponse['results']) {
           labels[result['filename']] = result['animal'];
@@ -379,8 +227,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
         _logDebug("Results parsed: ${labels.length} labels");
 
-        // Now save the analyzed images to database
-        await _saveAnalyzedImagesToDB();
+        await _saveAnalysedImagesToDB();
       } else {
         _logDebug("Still processing...");
       }
@@ -390,25 +237,21 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   String _getAnimalLabel(File imageFile) {
-    // Get just the filename part
     final fileName = path.basename(imageFile.path);
 
-    // Try to find an exact filename match
     if (_animalLabels.containsKey(fileName)) {
       return _animalLabels[fileName]!;
     }
 
-    // If no exact match, try case-insensitive comparison
     for (var key in _animalLabels.keys) {
       if (key.toLowerCase() == fileName.toLowerCase()) {
         return _animalLabels[key]!;
       }
     }
 
-    return 'Not analyzed';
+    return 'Not analysed';
   }
 
-  // Enhanced image deletion with improved error handling
   Future<void> _deleteImage(File imageFile) async {
     try {
       _logDebug("Deleting image from StorageManager: ${imageFile.path}");
@@ -446,17 +289,13 @@ class _GalleryScreenState extends State<GalleryScreen> {
         throw Exception('Image file does not exist');
       }
 
-      // Create a filename with the animal name
       final fileName = 'animal_${animalName.replaceAll(' ', '_').toLowerCase()}_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-      // Get temporary directory
       final dir = await getTemporaryDirectory();
       final tempPath = path.join(dir.path, fileName);
 
-      // Create a copy in the temp directory
       final File tempFile = await imageFile.copy(tempPath);
 
-      // Ask the user where to save it
       final params = SaveFileDialogParams(
         sourceFilePath: tempFile.path,
         fileName: fileName,
@@ -477,26 +316,24 @@ class _GalleryScreenState extends State<GalleryScreen> {
     }
   }
 
-  Future<void> _saveAnalyzedImagesToDB() async {
+  Future<void> _saveAnalysedImagesToDB() async {
     if (!_analysisComplete || _appImages.isEmpty || _animalLabels.isEmpty) {
-      _logDebug("No analyzed images to save");
+      _logDebug("No analysed images to save");
       return;
     }
 
-    _logDebug("Saving ${_appImages.length} analyzed images to database");
+    _logDebug("Saving ${_appImages.length} analysed images to database");
 
     try {
-      // Use the public getter for current user
       final currentUser = UserManager.getCurrentUser;
 
       if (currentUser == null || currentUser.id == null) {
-        _logDebug("User not logged in or missing ID, using default 'ImBit' username");
+        _logDebug("User not logged in or missing ID, using default username");
 
-        // Try to find the user by username
-        final userFromDB = await FirestoreService.getUserByUsername("ImBit");
+        final userFromDB = await FirestoreService.getUserByUsername("PLACEHOLDER");
 
         if (userFromDB == null || userFromDB.id == null) {
-          _logDebug("Failed to find user 'ImBit' in database");
+          _logDebug("Failed to find user in database");
 
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -506,20 +343,18 @@ class _GalleryScreenState extends State<GalleryScreen> {
           return;
         }
 
-        // Use the user from the database
         final String userId = userFromDB.id!;
         _logDebug("Using database user: $userId");
 
         await _processImageSaving(userId);
       } else {
-        // User is logged in
         final String userId = currentUser.id!;
         _logDebug("User logged in: $userId");
 
         await _processImageSaving(userId);
       }
     } catch (e) {
-      _logDebug("Error saving analyzed images to database: $e");
+      _logDebug("Error saving analysed images to database: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Failed to save to database: $e'))
@@ -528,22 +363,59 @@ class _GalleryScreenState extends State<GalleryScreen> {
     }
   }
 
-// Move the image saving logic to a separate method to avoid code duplication
   Future<void> _processImageSaving(String userId) async {
     int savedCount = 0;
+    List<File> imagesToRemove = [];
+    Map<File, String> successfullySubmitted = {};
 
-    // For each image that has an animal label
+    // Set to track files that are already being deleted to prevent duplicates
+    Set<String> processingPaths = {};
+
     for (var imageFile in _appImages) {
+      // Skip this file if we've already processed it
+      if (processingPaths.contains(imageFile.path)) {
+        continue;
+      }
+
+      // Mark this file as being processed
+      processingPaths.add(imageFile.path);
+
       final fileName = path.basename(imageFile.path);
       final animalLabel = _getAnimalLabel(imageFile);
 
-      // Skip images that weren't successfully analyzed
-      if (animalLabel == 'Not analyzed') {
+      // Check if file exists before attempting operations
+      bool fileExists;
+      try {
+        fileExists = await imageFile.exists();
+      } catch (e) {
+        _logDebug("Error checking if file exists: $e");
+        fileExists = false;
+      }
+
+      if (!fileExists) {
+        _logDebug("Skipping non-existent file: $fileName");
+        imagesToRemove.add(imageFile);
+        continue;
+      }
+
+      if (animalLabel.toLowerCase() == 'blank') {
+        _logDebug("Detected blank image: $fileName - removing directly");
+        try {
+          await _storageManager.deleteImage(imageFile);
+          imagesToRemove.add(imageFile);
+        } catch (e) {
+          _logDebug("Error removing blank image: $e");
+          // Still add to removal list even if deletion fails
+          imagesToRemove.add(imageFile);
+        }
+        continue;
+      }
+
+      if (animalLabel == 'Not analysed') {
         _logDebug("Skipping image without analysis: $fileName");
         continue;
       }
 
-      // Get location data using LocationManager
       List<double>? locationData;
       try {
         final position = await LocationManager().getPosition();
@@ -554,23 +426,16 @@ class _GalleryScreenState extends State<GalleryScreen> {
         _logDebug("Error getting location: $e");
       }
 
-      // Get current date and time in UTC format
-      String currentDateTime = UserManager.getCurrentUtcDateTimeFormatted();
-      _logDebug("Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): $currentDateTime");
-      _logDebug("Current User's Login: ${UserManager.getCurrentUser?.username ?? 'None'}");
-
-      // Create photo object with the correct structure
-      final photoObject = PhotoObject(
+      var photoObject = PhotoObject(
         id: null,
         userId: userId,
         photoPath: imageFile.path,
         timestamp: DateTime.now(),
         location: locationData,
-        animalClassification: null, // Will be updated after animal is saved
-        encryptedImageData: null,
+        animalClassification: null,
+        encryptedImageData: await ImageEncryptor.encryptPngToString(imageFile),
       );
 
-      // Check if animal already exists in database
       AnimalObject? existingAnimal;
       try {
         existingAnimal = await FirestoreService.getAnimalByName(animalLabel);
@@ -578,56 +443,226 @@ class _GalleryScreenState extends State<GalleryScreen> {
         _logDebug("Error finding animal by name: $e");
       }
 
-      // If animal doesn't exist, create new one
+      AnimalObject animalToSave;
+
       if (existingAnimal == null) {
-        existingAnimal = AnimalObject(
-          id: null,
-          name: animalLabel,
-          species: animalLabel,
-          description: "Detected on $currentDateTime UTC",
-          encryptedImageData: null,
+        _logDebug("Creating new animal: $animalLabel");
+
+        animalToSave = await AnimalService.generateAnimalObject(
+            animalName: animalLabel,
+            species: animalLabel,
+            firstPhoto: photoObject,
+            rarity: Rarity.legendary
         );
-        _logDebug("Created new animal object: ${existingAnimal.name}");
+        _logDebug("Generated new animal object: ${animalToSave
+            .name} with rarity ${animalToSave.rarity}");
+      } else {
+        _logDebug(
+            "Animal already exists: $animalLabel (ID: ${existingAnimal.id})");
+
+        int photoCount = 1;
+        try {
+          if (existingAnimal.id != null) {
+            final photos = await FirestoreService.getPhotosByAnimal(
+                existingAnimal.id!);
+            photoCount += photos.length;
+          }
+        } catch (e) {
+          _logDebug("Error counting existing photos: $e");
+        }
+
+        animalToSave = await AnimalService.updateAnimalObject(
+            existingAnimal: existingAnimal,
+            newPhoto: photoObject,
+            totalPhotoCount: photoCount
+        );
+        _logDebug("Updated animal object: ${animalToSave
+            .name} with count $photoCount");
       }
 
-      // Save photo to database
+      String? animalId;
+      try {
+        animalId = await FirestoreService.saveAnimal(animalToSave);
+        if (animalId == null || animalId.isEmpty) {
+          _logDebug("Failed to save animal: ${animalToSave.name}");
+          continue;
+        }
+        _logDebug("Animal saved with ID: $animalId");
+
+        photoObject = PhotoObject(
+          id: photoObject.id,
+          userId: photoObject.userId,
+          photoPath: photoObject.photoPath,
+          timestamp: photoObject.timestamp,
+          location: photoObject.location,
+          animalClassification: animalId,
+          encryptedImageData: photoObject.encryptedImageData,
+        );
+      } catch (e) {
+        _logDebug("Error saving animal: $e");
+        continue;
+      }
+
       String? photoId;
       try {
         photoId = await FirestoreService.savePhoto(photoObject);
 
         if (photoId != null && photoId.isNotEmpty) {
-          // Link photo to the animal
-          final success = await FirestoreService.linkPhotoToAnimal(photoId, existingAnimal);
+          _logDebug("Photo saved with ID: $photoId");
+          savedCount++;
 
-          if (success) {
-            _logDebug("Successfully saved and linked: $fileName -> $animalLabel");
-            savedCount++;
-          } else {
-            _logDebug("Failed to link photo to animal");
-          }
+          imagesToRemove.add(imageFile);
+          successfullySubmitted[imageFile] = animalLabel;
         } else {
           _logDebug("Failed to save photo: $fileName");
         }
       } catch (e) {
-        _logDebug("Error during save/link process: $e");
+        _logDebug("Error saving photo: $e");
       }
     }
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Saved $savedCount analyzed images to database'))
-      );
-    }
+    int blankImageCount = imagesToRemove
+        .where(
+            (image) => !successfullySubmitted.containsKey(image)
+    )
+        .length;
 
-    _logDebug("Database save complete: $savedCount images saved");
+    if (successfullySubmitted.isNotEmpty || blankImageCount > 0) {
+      if (mounted) {
+        await _showSubmissionSummary(successfullySubmitted, 0); // todo make this 0 blank image count.
+      }
+
+      for (var image in imagesToRemove) {
+        try {
+          if (await image.exists()) {
+            await image.delete();
+          }
+          await _storageManager.deleteImage(image);
+          _logDebug("Removed submitted image from storage: ${image.path}");
+        } catch (e) {
+          _logDebug("Error removing submitted image: $e");
+        }
+      }
+
+      setState(() {
+        _appImages.removeWhere((image) => imagesToRemove.contains(image));
+      });
+
+      // Rest of your code for showing summary etc.
+      int blankImageCount = imagesToRemove
+          .where(
+              (image) => !successfullySubmitted.containsKey(image)
+      )
+          .length;
+
+      if (successfullySubmitted.isNotEmpty || blankImageCount > 0) {
+        if (mounted) {
+          await _showSubmissionSummary(successfullySubmitted, blankImageCount);
+        }
+      }
+
+      // Load fresh images after processing
+      await _loadImagesFromStorage();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Saved $savedCount analysed images to database'))
+        );
+      }
+
+      _logDebug("Database save complete: $savedCount images saved");
+    }
   }
 
+  Future<void> _showSubmissionSummary(Map<File, String> submittedImages, int blankImageCount) async {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Submission Summary'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (submittedImages.isNotEmpty) ...[
+                  const Text('Successfully submitted:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  ...submittedImages.entries.map((entry) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: Image.file(
+                              entry.key,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            entry.value,
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )).toList(),
+                  const SizedBox(height: 16),
+                ],
+
+                if (blankImageCount > 0)
+                  Text(
+                    '$blankImageCount blank images were not submitted and will be removed.',
+                    style: const TextStyle(fontStyle: FontStyle.italic),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Done'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> deleteImage(File imageFile) async {
+    try {
+      if (await imageFile.exists()) {
+        await imageFile.delete();
+      }
+    } catch (e) {
+      print("Error deleting image file: $e");
+      throw e;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Animal Gallery'),
+        automaticallyImplyLeading: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -680,39 +715,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
       ),
       body: Column(
         children: [
-          // Camera and gallery buttons
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: _takePhoto,
-                    icon: const Icon(Icons.camera_alt),
-                    label: const Text('Take Photo'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: _pickImagesFromGallery,
-                    icon: const Icon(Icons.photo_library),
-                    label: const Text('Import Photos'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Status bar for image count
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Row(
               children: [
                 Icon(
@@ -732,7 +736,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ),
           ),
 
-          // Image grid
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -772,7 +775,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 itemCount: _appImages.length,
                 itemBuilder: (context, index) {
                   final imageFile = _appImages[index];
-                  final animalLabel = _analysisComplete ? _getAnimalLabel(imageFile) : 'Not analyzed';
+                  final animalLabel = _analysisComplete ? _getAnimalLabel(imageFile) : 'Not analysed';
 
                   return GestureDetector(
                     onTap: () => _showImageDetails(imageFile, animalLabel),
@@ -842,7 +845,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ),
           ),
 
-          // Analysis button
           if (_appImages.isNotEmpty)
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -871,17 +873,15 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       Text('Processing...'),
                     ],
                   )
-                      : const Text('Analyze Animals'),
+                      : const Text('Submit Findings!'),
                 ),
               ),
             ),
         ],
       ),
-      bottomNavigationBar: const CustomBottomNavigation(currentIndex: 4),
     );
   }
 
-  // Show options for the image
   void _showImageOptions(File imageFile, String animalLabel) {
     showModalBottomSheet(
       context: context,
@@ -919,7 +919,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
     );
   }
 
-  // Show delete confirmation
   void _showDeleteConfirmation(File imageFile) {
     showDialog(
       context: context,
@@ -948,12 +947,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
     );
   }
 
-  // Show image details
   void _showImageDetails(File imageFile, String animalLabel) {
     final fileName = path.basename(imageFile.path);
     final fileSize = (imageFile.lengthSync() / 1024).toStringAsFixed(2);
 
-    // Try to extract timestamp from filename or get file modified time
     DateTime dateCreated;
     try {
       final nameParts = fileName.split('_');
@@ -963,7 +960,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
           isUtc: true
       ).toLocal();
     } catch (e) {
-      // Fall back to file stats
       dateCreated = File(imageFile.path).lastModifiedSync();
     }
 
