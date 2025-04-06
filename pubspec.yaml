@@ -27,7 +27,6 @@ dependencies:
 #  geolocator_android: ^5.0.1
   flutter_markdown_plus: ^1.0.3
   flutter_svg_provider: ^1.0.7
-  uuid: ^3.0.6
 
 dev_dependencies:
   flutter_test:
@@ -48,3 +47,4 @@ flutter:
     - assets/images/star_pattern.png
     - assets/images/dot.png
     - assets/Marker.png
+    - assets/images/placeholder_animal.png

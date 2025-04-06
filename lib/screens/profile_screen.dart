@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../database/database_management.dart';
 import '../database/objects/user_object.dart';
+import '../database/objects/photo_object.dart';
 import '../services/user_manager.dart';
 import '../widgets/bottom_navigation.dart';
 
@@ -12,6 +13,53 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  List<PhotoObject> _userPhotos = [];
+  bool _isLoading = true;
+  String _photoCount = "0";
+  String _speciesCount = "0";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserPhotos();
+  }
+
+  Future<void> _loadUserPhotos() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final currentUser = UserManager.getCurrentUser;
+    if (currentUser != null && currentUser.id != null) {
+      try {
+        final photos = await FirestoreService.getPhotosByUser(currentUser.id!);
+
+        // Count unique species
+        final Set<String?> uniqueSpecies = {};
+        for (var photo in photos) {
+          if (photo.animalClassification != null) {
+            uniqueSpecies.add(photo.animalClassification);
+          }
+        }
+
+        setState(() {
+          _userPhotos = photos;
+          _photoCount = photos.length.toString();
+          _speciesCount = uniqueSpecies.length.toString();
+          _isLoading = false;
+        });
+      } catch (e) {
+        print("Error loading user photos: $e");
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +84,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       Flexible(
                         child: Text(
-                          UserManager.getCurrentUser!.username ?? 'Guest',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          UserManager.getCurrentUser?.username ?? 'Guest',
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -46,7 +94,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         onPressed: () {
                           // Create a text editing controller with the current username
                           final TextEditingController usernameController = TextEditingController(
-                              text: UserManager.getCurrentUser!.username ?? 'Guest'
+                              text: UserManager.getCurrentUser?.username ?? 'Guest'
                           );
 
                           // Handle edit profile action
@@ -85,8 +133,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         TextButton(
                                           onPressed: () async {
                                             // Get current user ID
-                                            final currentUser = UserManager.getCurrentUser!;
-                                            if (currentUser.id != null) {
+                                            final currentUser = UserManager.getCurrentUser;
+                                            if (currentUser != null && currentUser.id != null) {
                                               final newUsername = usernameController.text.trim();
 
                                               if (newUsername.isEmpty) {
@@ -166,15 +214,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(
+                SizedBox(
                   width: 200,
-                  child: ProfileStatsRow(),
+                  child: ProfileStatsRow(
+                    photoCount: _photoCount,
+                    speciesCount: _speciesCount,
+                  ),
                 ),
               ],
             ),
           ),
           Expanded(
-            child: SingleChildScrollView(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(
               child: Column(
                 children: [
                   const Padding(
@@ -183,123 +236,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Hello, my name is Heath. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-                          style: TextStyle(fontSize: 16),
+                          'My Wildlife Collection',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                   ),
-                  Wrap(
-                    children: [
-                      SizedBox(
-                        width: (MediaQuery.of(context).size.width) / 3,
-                        height: (MediaQuery.of(context).size.width) / 3,
-                        child: const Image(
-                          image: NetworkImage(
-                              'https://i.ytimg.com/vi/czR6DrMptJE/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLBm-s4RSY9BGKY3Km3KS0ASs_RaiQ'),
-                          fit: BoxFit.cover,
-                        ),
+                  _userPhotos.isEmpty
+                      ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32.0),
+                      child: Text(
+                        'No photos yet. Capture some wildlife!',
+                        style: TextStyle(fontSize: 16),
                       ),
-                      SizedBox(
-                        width: (MediaQuery.of(context).size.width) / 3,
-                        height: (MediaQuery.of(context).size.width) / 3,
-                        child: const Image(
-                          image: NetworkImage(
-                              'https://assets.tiltify.com/uploads/media_type/image/203025/blob-09636982-a21a-494b-bbe4-3692c2720ae3.jpeg'),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      SizedBox(
-                        width: (MediaQuery.of(context).size.width) / 3,
-                        height: (MediaQuery.of(context).size.width) / 3,
-                        child: const Image(
-                          image: NetworkImage(
-                              'https://media.gettyimages.com/id/842992554/photo/dove-with-glasses.jpg?s=612x612&w=gi&k=20&c=-Q6F36h_VDaZLVIh90CAfvP3R-ICpHKyjZ5e2wKNqos='),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      SizedBox(
-                        width: (MediaQuery.of(context).size.width) / 3,
-                        height: (MediaQuery.of(context).size.width) / 3,
-                        child: const Image(
-                          image: NetworkImage(
-                              'https://raspberriescards.com/cdn/shop/files/BirdSticker.jpg?v=1696778689'),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      SizedBox(
-                        width: (MediaQuery.of(context).size.width) / 3,
-                        height: (MediaQuery.of(context).size.width) / 3,
-                        child: const Image(
-                          image: NetworkImage(
-                              'https://i.ytimg.com/vi/czR6DrMptJE/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLBm-s4RSY9BGKY3Km3KS0ASs_RaiQ'),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      SizedBox(
-                        width: (MediaQuery.of(context).size.width) / 3,
-                        height: (MediaQuery.of(context).size.width) / 3,
-                        child: const Image(
-                          image: NetworkImage(
-                              'https://assets.tiltify.com/uploads/media_type/image/203025/blob-09636982-a21a-494b-bbe4-3692c2720ae3.jpeg'),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      SizedBox(
-                        width: (MediaQuery.of(context).size.width) / 3,
-                        height: (MediaQuery.of(context).size.width) / 3,
-                        child: const Image(
-                          image: NetworkImage(
-                              'https://media.gettyimages.com/id/842992554/photo/dove-with-glasses.jpg?s=612x612&w=gi&k=20&c=-Q6F36h_VDaZLVIh90CAfvP3R-ICpHKyjZ5e2wKNqos='),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      SizedBox(
-                        width: (MediaQuery.of(context).size.width) / 3,
-                        height: (MediaQuery.of(context).size.width) / 3,
-                        child: const Image(
-                          image: NetworkImage(
-                              'https://raspberriescards.com/cdn/shop/files/BirdSticker.jpg?v=1696778689'),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      SizedBox(
-                        width: (MediaQuery.of(context).size.width) / 3,
-                        height: (MediaQuery.of(context).size.width) / 3,
-                        child: const Image(
-                          image: NetworkImage(
-                              'https://i.ytimg.com/vi/czR6DrMptJE/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLBm-s4RSY9BGKY3Km3KS0ASs_RaiQ'),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      SizedBox(
-                        width: (MediaQuery.of(context).size.width) / 3,
-                        height: (MediaQuery.of(context).size.width) / 3,
-                        child: const Image(
-                          image: NetworkImage(
-                              'https://assets.tiltify.com/uploads/media_type/image/203025/blob-09636982-a21a-494b-bbe4-3692c2720ae3.jpeg'),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      SizedBox(
-                        width: (MediaQuery.of(context).size.width) / 3,
-                        height: (MediaQuery.of(context).size.width) / 3,
-                        child: const Image(
-                          image: NetworkImage(
-                              'https://media.gettyimages.com/id/842992554/photo/dove-with-glasses.jpg?s=612x612&w=gi&k=20&c=-Q6F36h_VDaZLVIh90CAfvP3R-ICpHKyjZ5e2wKNqos='),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      SizedBox(
-                        width: (MediaQuery.of(context).size.width) / 3,
-                        height: (MediaQuery.of(context).size.width) / 3,
-                        child: const Image(
-                          image: NetworkImage(
-                              'https://raspberriescards.com/cdn/shop/files/BirdSticker.jpg?v=1696778689'),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ],
+                    ),
+                  )
+                      : Wrap(
+                    children: _buildPhotoGrid(),
                   ),
                 ],
               ),
@@ -310,21 +264,138 @@ class _ProfileScreenState extends State<ProfileScreen> {
       bottomNavigationBar: const CustomBottomNavigation(currentIndex: 3),
     );
   }
+
+  List<Widget> _buildPhotoGrid() {
+    return _userPhotos.map((photo) {
+      return GestureDetector(
+        onTap: () {
+          // Handle photo tap - maybe show details or full screen view
+          _showPhotoDetails(photo);
+        },
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width / 3,
+          height: MediaQuery.of(context).size.width / 3,
+          child: photo.encryptedImageData != null && photo.encryptedImageData!.isNotEmpty
+              ? Image(
+            image: photo.getImageProvider() ??
+                const AssetImage('assets/images/placeholder_animal.png'),
+            fit: BoxFit.cover,
+          )
+              : Image.asset(
+            'assets/images/placeholder_animal.png',
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }).toList();
+  }
+
+  void _showPhotoDetails(PhotoObject photo) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        maxChildSize: 0.9,
+        minChildSize: 0.3,
+        expand: false,
+        builder: (context, scrollController) {
+          return SingleChildScrollView(
+            controller: scrollController,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Photo Details',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  Center(
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.8,
+                      height: MediaQuery.of(context).size.width * 0.8,
+                      child: photo.encryptedImageData != null
+                          ? Image(
+                        image: photo.getImageProvider() ??
+                            const AssetImage('assets/images/placeholder_animal.png'),
+                        fit: BoxFit.contain,
+                      )
+                          : Image.asset(
+                        'assets/images/placeholder_animal.png',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Date: ${photo.timestamp.toString().split('.')[0]}'),
+                  if (photo.animalClassification != null)
+                    FutureBuilder<AnimalObject?>(
+                      future: FirestoreService.getAnimalById(photo.animalClassification!),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Text('Loading animal information...');
+                        }
+
+                        if (snapshot.hasData && snapshot.data != null) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 8),
+                              Text('Species: ${snapshot.data!.name}'),
+                              Text('Rarity: ${snapshot.data!.rarity}'),
+                              const SizedBox(height: 8),
+                              Text('Description: ${snapshot.data!.description}'),
+                            ],
+                          );
+                        }
+
+                        return const Text('No animal classification available');
+                      },
+                    ),
+                  const SizedBox(height: 16),
+                  if (photo.location != null && photo.location!.length >= 2)
+                    Text('Location: ${photo.location![0]}, ${photo.location![1]}'),
+                  const SizedBox(height: 32),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Close'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 }
 
 class ProfileStatsRow extends StatelessWidget {
-  const ProfileStatsRow({super.key});
+  final String photoCount;
+  final String speciesCount;
+
+  const ProfileStatsRow({
+    super.key,
+    required this.photoCount,
+    required this.speciesCount
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildStatColumn('12', 'Photos'),
+        _buildStatColumn(photoCount, 'Photos'),
         _buildDivider(),
-        _buildStatColumn('5', 'Species'),
+        _buildStatColumn(speciesCount, 'Species'),
         _buildDivider(),
-        _buildStatColumn('3', 'Badges'),
+        _buildStatColumn('3', 'Badges'), // This could be dynamic too
       ],
     );
   }

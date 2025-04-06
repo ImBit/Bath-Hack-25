@@ -1,0 +1,9 @@
+Essential:
+ Image editing in profile
+ Precise mapping for markers
+ Edit bio in profile
+
+
+
+Optional:
+ Settings page?
