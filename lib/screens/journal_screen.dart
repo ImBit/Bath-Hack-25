@@ -38,29 +38,14 @@ class JournalView extends StatefulWidget {
   State<JournalView> createState() => _JournalViewState();
 }
 
-class _JournalViewState extends State<JournalView>
-    with SingleTickerProviderStateMixin {
-  late Animation<double> animation;
-  late AnimationController controller;
+class _JournalViewState extends State<JournalView> {
   List<JournalEntry> entries = [];
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    controller = AnimationController(
-        duration: const Duration(seconds: 100000), vsync: this);
-    animation = Tween<double>(begin: 0, end: 4000).animate(controller)
-      ..addListener(() {
-        setState(() {
-          // The state that has changed here is the animation object's value.
-        });
-        if (controller.isCompleted) {
-          controller.repeat();
-        }
-      });
-    controller.forward();
-
+    
     // Load journal entries
     _loadJournalEntries();
   }
@@ -84,7 +69,8 @@ class _JournalViewState extends State<JournalView>
       }
 
       // Get photos with animal data for the current user
-      final photosWithAnimalData = await FirestoreService.getPhotosWithAnimalData(userId);
+      final photosWithAnimalData =
+          await FirestoreService.getPhotosWithAnimalData(userId);
 
       // Group photos by animal
       Map<String, List<Map<String, dynamic>>> animalGroups = {};
@@ -107,11 +93,13 @@ class _JournalViewState extends State<JournalView>
       for (var animalId in animalGroups.keys) {
         final animalData = animalGroups[animalId]!;
         final animal = animalData.first['animal'] as AnimalObject;
-        final photos = animalData.map((item) => item['photo'] as PhotoObject).toList();
+        final photos =
+            animalData.map((item) => item['photo'] as PhotoObject).toList();
 
         // Calculate progress based on number of photos
         final photoCount = photos.length;
-        final maxPhotos = LevellingManager.getPhotosNeededForNextLevel(photoCount);
+        final maxPhotos =
+            LevellingManager.getPhotosNeededForNextLevel(photoCount);
         final currentProgress = LevellingManager.getProgress(photoCount);
         final level = "Level ${LevellingManager.getLevel(photoCount)}";
 
@@ -119,7 +107,8 @@ class _JournalViewState extends State<JournalView>
         ImageProvider<Object> image;
         if (animal.imageUrl != null && animal.imageUrl!.isNotEmpty) {
           image = NetworkImage(animal.imageUrl!);
-        } else if (photos.isNotEmpty && photos.first.getImageProvider() != null) {
+        } else if (photos.isNotEmpty &&
+            photos.first.getImageProvider() != null) {
           // Use the first photo's image provider as fallback
           image = photos.first.getImageProvider()!;
         } else {
@@ -147,7 +136,6 @@ class _JournalViewState extends State<JournalView>
         entries = loadedEntries;
         isLoading = false;
       });
-
     } catch (e) {
       print("Error loading journal entries: $e");
       setState(() {
@@ -165,92 +153,93 @@ class _JournalViewState extends State<JournalView>
       ),
       body: Stack(
         children: [
-          // Background gradient
-          Container(
-            decoration: const BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment.center,
-                radius: 0.85,
-                colors: [
-                  Color.fromRGBO(249, 181, 51, 1), // light gold
-                  Color.fromRGBO(215, 147, 23, 1), // dark gold
-                ],
-              ),
-            ),
-            child: const SizedBox.expand(),
-          ),
-
-          // Star pattern background
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/star_pattern.png',
-              repeat: ImageRepeat.repeat,
-              opacity: const AlwaysStoppedAnimation(0.2),
-              alignment: FractionalOffset(animation.value, animation.value / 4),
-            ),
-          ),
+          PatternedBG(),
 
           // Content
           Center(
             child: isLoading
                 ? const CircularProgressIndicator()
                 : entries.isEmpty
-                ? const Center(
-              child: Text(
-                'No entries found. Start taking photos of animals!',
-                style: TextStyle(fontSize: 18),
-                textAlign: TextAlign.center,
-              ),
-            )
-                : Padding(
-              padding: const EdgeInsets.all(8),
-              child: ListView.builder(
-                itemCount: entries.length,
-                itemBuilder: (context, index) {
-                  final entry = entries[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: GestureDetector(
-                      onTap: () => _showAnimalDetails(entry),
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15), // Rounded corners for the card
+                    ? const Center(
+                        child: Text(
+                          'No entries found.\nStart taking photos of animals!',
+                          style: TextStyle(fontSize: 18),
+                          textAlign: TextAlign.center,
                         ),
-                        color: Colors.grey[300],
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15), // Match card's corner radius
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: const Alignment(0, 2),
-                              stops: const [
-                                0, 0.125, 0.125, 0.25, 0.25, 0.375, 0.375, 0.5,
-                                0.5, 0.625, 0.625, 0.75, 0.75, 0.875, 0.875, 1
-                              ],
-                              colors: [
-                                Colors.grey[300]!, Colors.grey[300]!,
-                                Colors.grey[200]!, Colors.grey[200]!,
-                                Colors.grey[300]!, Colors.grey[300]!,
-                                Colors.grey[200]!, Colors.grey[200]!,
-                                Colors.grey[300]!, Colors.grey[300]!,
-                                Colors.grey[200]!, Colors.grey[200]!,
-                                Colors.grey[300]!, Colors.grey[300]!,
-                                Colors.grey[200]!, Colors.grey[200]!,
-                              ],
-                              tileMode: TileMode.repeated,
-                            ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: AnimalDetails(entry: entry),
-                          ),
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: ListView.builder(
+                          itemCount: entries.length,
+                          itemBuilder: (context, index) {
+                            final entry = entries[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: GestureDetector(
+                                onTap: () => _showAnimalDetails(entry),
+                                child: Card(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        15), // Rounded corners for the card
+                                  ),
+                                  color: Colors.grey[300],
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(
+                                          15), // Match card's corner radius
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: const Alignment(0, 2),
+                                        stops: const [
+                                          0,
+                                          0.125,
+                                          0.125,
+                                          0.25,
+                                          0.25,
+                                          0.375,
+                                          0.375,
+                                          0.5,
+                                          0.5,
+                                          0.625,
+                                          0.625,
+                                          0.75,
+                                          0.75,
+                                          0.875,
+                                          0.875,
+                                          1
+                                        ],
+                                        colors: [
+                                          Colors.grey[300]!,
+                                          Colors.grey[300]!,
+                                          Colors.grey[200]!,
+                                          Colors.grey[200]!,
+                                          Colors.grey[300]!,
+                                          Colors.grey[300]!,
+                                          Colors.grey[200]!,
+                                          Colors.grey[200]!,
+                                          Colors.grey[300]!,
+                                          Colors.grey[300]!,
+                                          Colors.grey[200]!,
+                                          Colors.grey[200]!,
+                                          Colors.grey[300]!,
+                                          Colors.grey[300]!,
+                                          Colors.grey[200]!,
+                                          Colors.grey[200]!,
+                                        ],
+                                        tileMode: TileMode.repeated,
+                                      ),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(12),
+                                      child: AnimalDetails(entry: entry),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-            ),
           ),
         ],
       ),
@@ -318,7 +307,10 @@ class _JournalViewState extends State<JournalView>
                         ),
 
                         // Show recent photos
-                        ...entry.photos.take(3).map((photo) => _buildRecentSighting(photo)).toList(),
+                        ...entry.photos
+                            .take(3)
+                            .map((photo) => _buildRecentSighting(photo))
+                            .toList(),
                       ]),
                     ),
                   ),
@@ -372,24 +364,23 @@ class _JournalViewState extends State<JournalView>
               borderRadius: BorderRadius.circular(8),
               child: photo.getImageProvider() != null
                   ? Image(
-                image: photo.getImageProvider()!,
-                height: 75,
-                width: 75,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    Container(
+                      image: photo.getImageProvider()!,
+                      height: 75,
+                      width: 75,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        height: 75,
+                        width: 75,
+                        color: Colors.grey,
+                        child: const Icon(Icons.error),
+                      ),
+                    )
+                  : Container(
                       height: 75,
                       width: 75,
                       color: Colors.grey,
-                      child: const Icon(Icons.error),
+                      child: const Icon(Icons.photo),
                     ),
-              )
-                  : Container(
-                height: 75,
-                width: 75,
-                color: Colors.grey,
-                child: const Icon(Icons.photo),
-              ),
             ),
           ],
         ),
@@ -416,10 +407,82 @@ class _JournalViewState extends State<JournalView>
 
   String _getMonth(int month) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
     ];
     return months[month - 1];
+  }
+}
+
+class PatternedBG extends StatefulWidget {
+  const PatternedBG({
+    super.key,
+  });
+
+  @override
+  State<PatternedBG> createState() => _PatternedBGState();
+}
+
+class _PatternedBGState extends State<PatternedBG>
+    with SingleTickerProviderStateMixin {
+  late Animation<double> animation;
+  late AnimationController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = AnimationController(
+        duration: const Duration(seconds: 100000), vsync: this);
+    animation = Tween<double>(begin: 0, end: 4000).animate(controller)
+      ..addListener(() {
+        setState(() {
+          // The state that has changed here is the animation object's value.
+        });
+        if (controller.isCompleted) {
+          controller.repeat();
+        }
+      });
+    controller.forward();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          decoration: const BoxDecoration(
+            gradient: RadialGradient(
+              center: Alignment.center,
+              radius: 0.85,
+              colors: [
+                Color.fromRGBO(249, 181, 51, 1), // light gold
+                Color.fromRGBO(215, 147, 23, 1), // dark gold
+              ],
+            ),
+          ),
+          child: const SizedBox.expand(),
+        ),
+        Positioned.fill(
+          child: Image.asset(
+            'assets/images/star_pattern.png',
+            repeat: ImageRepeat.repeat,
+            opacity: const AlwaysStoppedAnimation(0.2),
+            alignment: FractionalOffset(
+                animation.value, animation.value / 4),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -460,9 +523,12 @@ class AnimalDetails extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      entry.name.split(' ').map((word) => word.isNotEmpty
-                          ? '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}'
-                          : '').join(' '),
+                      entry.name
+                          .split(' ')
+                          .map((word) => word.isNotEmpty
+                              ? '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}'
+                              : '')
+                          .join(' '),
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -521,7 +587,7 @@ class AnimalDetails extends StatelessWidget {
                         FractionallySizedBox(
                           alignment: Alignment.centerLeft,
                           widthFactor:
-                          entry.currentProgress / entry.maxProgress,
+                              entry.currentProgress / entry.maxProgress,
                           child: Container(
                             height: 25,
                             decoration: BoxDecoration(

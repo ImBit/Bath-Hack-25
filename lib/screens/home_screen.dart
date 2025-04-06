@@ -14,7 +14,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Animal Conservation'),
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        backgroundColor: const Color.fromRGBO(255, 166, 0, 1),
       ),
       body: Center(
         child: Column(

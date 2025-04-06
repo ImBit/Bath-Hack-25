@@ -8,7 +8,7 @@ class AnimalDetectionApi {
   // For testing on an emulator, you can use 10.0.2.2 instead of localhost
   final String baseUrl;
 
-  AnimalDetectionApi({this.baseUrl = 'http://10.0.2.2:8000'});
+  AnimalDetectionApi({this.baseUrl = 'http://172.26.15.254:8000'});
 
   Future<Map<String, dynamic>> startDetection(List<File> images) async {
     try {

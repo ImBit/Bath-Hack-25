@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:animal_conservation/screens/journal_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../database/database_management.dart';
@@ -70,140 +71,209 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        backgroundColor: const Color.fromRGBO(255, 166, 0, 1),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    GestureDetector(
-                      onTap: _editProfilePicture,
-                      child: Stack(
-                        children: [
-                          CircleAvatar(
-                            radius: 40,
-                            backgroundImage: UserManager.getCurrentUser?.pfp != null &&
-                                UserManager.getCurrentUser!.pfp != '--pfp--'
-                                ? UserManager.getCurrentUser!.getProfilePictureImage()
-                                : const AssetImage('assets/images/default_profile.png'),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              height: 24,
-                              width: 24,
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).primaryColor,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
-                              ),
-                              child: const Icon(
-                                Icons.edit,
-                                size: 12,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+          const PatternedBG(),
+          Column(
+            children: [
+              Card(
+                margin: const EdgeInsets.all(16),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius:
+                        BorderRadius.circular(15), // Match card's corner radius
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: const Alignment(0, 2),
+                      stops: const [
+                        0,
+                        0.125,
+                        0.125,
+                        0.25,
+                        0.25,
+                        0.375,
+                        0.375,
+                        0.5,
+                        0.5,
+                        0.625,
+                        0.625,
+                        0.75,
+                        0.75,
+                        0.875,
+                        0.875,
+                        1
+                      ],
+                      colors: [
+                        Colors.grey[300]!,
+                        Colors.grey[300]!,
+                        Colors.grey[200]!,
+                        Colors.grey[200]!,
+                        Colors.grey[300]!,
+                        Colors.grey[300]!,
+                        Colors.grey[200]!,
+                        Colors.grey[200]!,
+                        Colors.grey[300]!,
+                        Colors.grey[300]!,
+                        Colors.grey[200]!,
+                        Colors.grey[200]!,
+                        Colors.grey[300]!,
+                        Colors.grey[300]!,
+                        Colors.grey[200]!,
+                        Colors.grey[200]!,
+                      ],
+                      tileMode: TileMode.repeated,
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  UserManager.getCurrentUser?.username ?? 'Guest',
-                                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.edit, size: 16),
-                                onPressed: () {
-                                  // Your existing username edit code
-                                  // ...
-                                },
-                              ),
-                            ],
-                          ),
-                          GestureDetector(
-                            onTap: _editBio,
-                            child: Row(
-                              children: [
-                                Flexible(
-                                  child: Text(
-                                    UserManager.getCurrentUser?.bio ?? '--empty bio--',
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 14,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Icon(Icons.edit, size: 14, color: Colors.grey[600]),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                ProfileStatsRow(
-                  photoCount: _photoCount,
-                  speciesCount: _speciesCount,
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : SingleChildScrollView(
-              child: Column(
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.all(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'My Wildlife Collection',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            GestureDetector(
+                              onTap: _editProfilePicture,
+                              child: Stack(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 40,
+                                    backgroundImage: UserManager
+                                                    .getCurrentUser?.pfp !=
+                                                null &&
+                                            UserManager.getCurrentUser!.pfp !=
+                                                '--pfp--'
+                                        ? UserManager.getCurrentUser!
+                                            .getProfilePictureImage()
+                                        : const AssetImage(
+                                            'assets/images/default_profile.png'),
+                                  ),
+                                  Positioned(
+                                    bottom: 0,
+                                    right: 0,
+                                    child: Container(
+                                      height: 24,
+                                      width: 24,
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).primaryColor,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                            color: Colors.white, width: 2),
+                                      ),
+                                      child: const Icon(
+                                        Icons.edit,
+                                        size: 12,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          UserManager
+                                                  .getCurrentUser?.username ??
+                                              'Guest',
+                                          style: const TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.edit, size: 16),
+                                        onPressed: () {
+                                          // Your existing username edit code
+                                          // ...
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                  GestureDetector(
+                                    onTap: _editBio,
+                                    child: Row(
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            UserManager.getCurrentUser?.bio ??
+                                                '--empty bio--',
+                                            style: TextStyle(
+                                              color: Colors.grey[600],
+                                              fontSize: 14,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Icon(Icons.edit,
+                                            size: 14, color: Colors.grey[600]),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        ProfileStatsRow(
+                          photoCount: _photoCount,
+                          speciesCount: _speciesCount,
                         ),
                       ],
                     ),
                   ),
-                  _userPhotos.isEmpty
-                      ? const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(32.0),
-                      child: Text(
-                        'No photos yet. Capture some wildlife!',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ),
-                  )
-                      : Wrap(
-                    children: _buildPhotoGrid(),
-                  ),
-                ],
+                ),
               ),
-            ),
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'My Wildlife Collection',
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            _userPhotos.isEmpty
+                                ? const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(32.0),
+                                      child: Text(
+                                        'No photos yet. Capture some wildlife!',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                    ),
+                                  )
+                                : Wrap(
+                                    children: _buildPhotoGrid(),
+                                  ),
+                          ],
+                        ),
+                      ),
+              ),
+            ],
           ),
         ],
       ),
@@ -233,13 +303,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final currentUser = UserManager.getCurrentUser;
       if (currentUser != null && currentUser.id != null) {
         // Encrypt the image
-        String encryptedImage = await ImageEncryptor.encryptPngToString(imageFile);
+        String encryptedImage =
+            await ImageEncryptor.encryptPngToString(imageFile);
 
         // Update in Firestore
         final success = await FirestoreService.updateProfilePicture(
-            currentUser.id!,
-            encryptedImage
-        );
+            currentUser.id!, encryptedImage);
 
         // Close loading dialog
         Navigator.pop(context);
@@ -258,28 +327,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           setState(() {});
 
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Profile picture updated successfully'))
-          );
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Profile picture updated successfully')));
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Failed to update profile picture'))
-          );
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Failed to update profile picture')));
         }
       } else {
         // Close loading dialog
         Navigator.pop(context);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('You need to be logged in to update your profile picture'))
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text(
+                'You need to be logged in to update your profile picture')));
       }
     } catch (e) {
       print("Error updating profile picture: $e");
       Navigator.of(context, rootNavigator: true).pop(); // Close dialog if open
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating profile picture: $e'))
-      );
+          SnackBar(content: Text('Error updating profile picture: $e')));
     }
   }
 
@@ -287,8 +353,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _editBio() {
     // Create a controller with the current bio
     final TextEditingController bioController = TextEditingController(
-        text: UserManager.getCurrentUser?.bio ?? '--empty bio--'
-    );
+        text: UserManager.getCurrentUser?.bio ?? '--empty bio--');
 
     showDialog<String>(
       context: context,
@@ -340,24 +405,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                         // Update bio in Firestore
                         final success = await FirestoreService.updateBio(
-                            currentUser.id!,
-                            newBio
-                        );
+                            currentUser.id!, newBio);
 
                         // Close loading dialog
                         Navigator.pop(context);
 
                         if (success) {
                           // Update current user in UserManager
-                          UserManager.setCurrentUser(
-                              UserObject(
-                                id: currentUser.id,
-                                username: currentUser.username,
-                                password: currentUser.password,
-                                bio: newBio,
-                                pfp: currentUser.pfp,
-                              )
-                          );
+                          UserManager.setCurrentUser(UserObject(
+                            id: currentUser.id,
+                            username: currentUser.username,
+                            password: currentUser.password,
+                            bio: newBio,
+                            pfp: currentUser.pfp,
+                          ));
 
                           // Close the edit dialog
                           Navigator.pop(context);
@@ -366,18 +427,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           setState(() {});
 
                           ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Bio updated successfully'))
-                          );
+                              const SnackBar(
+                                  content: Text('Bio updated successfully')));
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Failed to update bio'))
-                          );
+                              const SnackBar(
+                                  content: Text('Failed to update bio')));
                         }
                       } else {
                         Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('You need to be logged in to update your bio'))
-                        );
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                            content: Text(
+                                'You need to be logged in to update your bio')));
                       }
                     },
                     child: const Text('Save'),
@@ -392,7 +453,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   List<Widget> _buildPhotoGrid() {
-    return _userPhotos.map((photo) {
+    List<Widget> result = _userPhotos.map((photo) {
       return GestureDetector(
         onTap: () {
           // Handle photo tap - maybe show details or full screen view
@@ -401,19 +462,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: SizedBox(
           width: MediaQuery.of(context).size.width / 3,
           height: MediaQuery.of(context).size.width / 3,
-          child: photo.encryptedImageData != null && photo.encryptedImageData!.isNotEmpty
+          child: photo.encryptedImageData != null &&
+                  photo.encryptedImageData!.isNotEmpty
               ? Image(
-            image: photo.getImageProvider() ??
-                const AssetImage('assets/images/placeholder_animal.png'),
-            fit: BoxFit.cover,
-          )
+                  image: photo.getImageProvider() ??
+                      const AssetImage('assets/images/placeholder_animal.png'),
+                  fit: BoxFit.cover,
+                )
               : Image.asset(
-            'assets/images/placeholder_animal.png',
-            fit: BoxFit.cover,
-          ),
+                  'assets/images/placeholder_animal.png',
+                  fit: BoxFit.cover,
+                ),
         ),
       );
     }).toList();
+    // If there are less than 3 photos, fill the remaining space with placeholders
+    while (result.length < 3) {
+      result.add(
+        GestureDetector(
+          onTap: () {
+            // Handle photo tap - maybe show details or full screen view
+          },
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width / 3,
+            height: MediaQuery.of(context).size.width / 3,
+          ),
+        ),
+      );
+    }
+    return result;
   }
 
   void _showPhotoDetails(PhotoObject photo) {
@@ -444,23 +521,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       height: MediaQuery.of(context).size.width * 0.8,
                       child: photo.encryptedImageData != null
                           ? Image(
-                        image: photo.getImageProvider() ??
-                            const AssetImage('assets/images/placeholder_animal.png'),
-                        fit: BoxFit.contain,
-                      )
+                              image: photo.getImageProvider() ??
+                                  const AssetImage(
+                                      'assets/images/placeholder_animal.png'),
+                              fit: BoxFit.contain,
+                            )
                           : Image.asset(
-                        'assets/images/placeholder_animal.png',
-                        fit: BoxFit.contain,
-                      ),
+                              'assets/images/placeholder_animal.png',
+                              fit: BoxFit.contain,
+                            ),
                     ),
                   ),
                   const SizedBox(height: 16),
                   Text('Date: ${photo.timestamp.toString().split('.')[0]}'),
                   if (photo.animalClassification != null)
                     FutureBuilder<AnimalObject?>(
-                      future: FirestoreService.getAnimalById(photo.animalClassification!),
+                      future: FirestoreService.getAnimalById(
+                          photo.animalClassification!),
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return const Text('Loading animal information...');
                         }
 
@@ -472,7 +552,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Text('Species: ${snapshot.data!.name}'),
                               Text('Rarity: ${snapshot.data!.rarity}'),
                               const SizedBox(height: 8),
-                              Text('Description: ${snapshot.data!.description}'),
+                              Text(
+                                  'Description: ${snapshot.data!.description}'),
                             ],
                           );
                         }
@@ -482,7 +563,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   const SizedBox(height: 16),
                   if (photo.location != null && photo.location!.length >= 2)
-                    Text('Location: ${photo.location![0]}, ${photo.location![1]}'),
+                    Text(
+                        'Location: ${photo.location![0]}, ${photo.location![1]}'),
                   const SizedBox(height: 32),
                   Center(
                     child: ElevatedButton(
@@ -506,11 +588,8 @@ class ProfileStatsRow extends StatelessWidget {
   final String photoCount;
   final String speciesCount;
 
-  const ProfileStatsRow({
-    super.key,
-    required this.photoCount,
-    required this.speciesCount
-  });
+  const ProfileStatsRow(
+      {super.key, required this.photoCount, required this.speciesCount});
 
   @override
   Widget build(BuildContext context) {

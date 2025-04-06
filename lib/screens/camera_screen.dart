@@ -349,48 +349,69 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Image Saved Successfully'),
-          content: SingleChildScrollView( // Wrap in SingleChildScrollView
-            child: Column(
-              mainAxisSize: MainAxisSize.min, // Keep this to minimize height
-              children: [
-                // Fix 1: Add constraints to the image
-                Container(
-                  constraints: BoxConstraints(
-                    maxHeight: 200,
-                    maxWidth: MediaQuery.of(context).size.width * 0.6,
-                  ),
-                  child: ClipRRect( // Optional: adds rounded corners
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.file(
-                      savedFile,
-                      fit: BoxFit.contain, // Use contain instead of cover
-                      // Don't specify height/width here, let Container constrain it
+        return Stack(
+          children: [
+            // Dotted background pattern
+            Center(
+              child: SizedBox(
+                width: 320,
+                height: 500,
+                child: Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.asset(
+                      'assets/images/dot.png',
+                      repeat: ImageRepeat.repeat,
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                Text('Saved to: ${path.basename(savedFile.path)}'),
-                const SizedBox(height: 16),
-                const Text('What would you like to do next?'),
+              ),
+            ),
+            AlertDialog(
+              backgroundColor: Colors.transparent,
+              title: const Text('Image Saved Successfully'),
+              content: SingleChildScrollView( // Wrap in SingleChildScrollView
+                child: Column(
+                  mainAxisSize: MainAxisSize.min, // Keep this to minimize height
+                  children: [
+                    // Fix 1: Add constraints to the image
+                    Container(
+                      constraints: BoxConstraints(
+                        maxHeight: 200,
+                        maxWidth: MediaQuery.of(context).size.width * 0.6,
+                      ),
+                      child: ClipRRect( // Optional: adds rounded corners
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(
+                          savedFile,
+                          fit: BoxFit.contain, // Use contain instead of cover
+                          // Don't specify height/width here, let Container constrain it
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text('Saved to: ${path.basename(savedFile.path)}'),
+                    const SizedBox(height: 16),
+                    const Text('What would you like to do next?'),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    // Navigate to gallery screen
+                    _navigateToGallery();
+                  },
+                  child: const Text('Submit Photos'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Take Another Photo'),
+                ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // Navigate to gallery screen
-                _navigateToGallery();
-              },
-              child: const Text('Submit Photos'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Take Another Photo'),
             ),
           ],
         );

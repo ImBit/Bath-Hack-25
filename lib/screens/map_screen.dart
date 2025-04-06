@@ -162,7 +162,7 @@ class _MapScreenState extends State<MapScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Map'),
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        backgroundColor: const Color.fromRGBO(255, 166, 0, 1),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())

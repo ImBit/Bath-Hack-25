@@ -662,6 +662,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Animal Gallery'),
+        backgroundColor: const Color.fromRGBO(255, 166, 0, 1),
         automaticallyImplyLeading: true,
         actions: [
           IconButton(
