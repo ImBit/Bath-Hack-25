@@ -60,7 +60,6 @@ class FirestoreService {
     }
   }
 
-// Save or update user
   static Future<String?> saveUser(UserObject user) async {
     final db = await _db;
     try {
@@ -84,7 +83,6 @@ class FirestoreService {
     }
   }
 
-// Check if username is available
   static Future<bool> isUsernameAvailable(String username) async {
     final db = await _db;
     try {

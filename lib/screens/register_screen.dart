@@ -18,7 +18,6 @@ class _LoginScreenState extends State<RegisterScreen> {
   String? _passwordError;
   String _password = "";
   final RegExp _passwordVal = RegExp(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).+$');
-  final firestoreService = FirestoreService();
 
   Future<void> _validateUsername() async {
     if (_username.toLowerCase() == "dev") {
@@ -34,7 +33,7 @@ class _LoginScreenState extends State<RegisterScreen> {
     }
 
     // Run the async check outside of setState
-    bool isAvailable = await firestoreService.isUsernameAvailable(_username);
+    bool isAvailable = await FirestoreService.isUsernameAvailable(_username);
 
     // Then update the state with the result
     setState(() {
@@ -66,7 +65,7 @@ class _LoginScreenState extends State<RegisterScreen> {
 
     if (_usernameError == null && (_passwordError == null || _username.toLowerCase() == "dev")) {
       if (_username.toLowerCase() != "dev") {
-        await firestoreService.saveUser(UserObject(username: _username, password: _password));
+        await FirestoreService.saveUser(UserObject(username: _username, password: _password));
       }
       Navigator.pushReplacementNamed(context, AppRoutes.camera);
     }
