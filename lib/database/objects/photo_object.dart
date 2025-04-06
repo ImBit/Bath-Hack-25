@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -5,9 +7,10 @@ class PhotoObject {
   String? id;
   final String photoPath;
   final DateTime timestamp;
-  final String? animalClassification; // ID or name of the animal
-  final Map<String, double>? location; // Now a Map with latitude and longitude
+  final String? animalClassification;
+  final Map<String, double>? location;
   final String userId;
+  final String? encryptedImageData;
 
   PhotoObject({
     this.id,
@@ -16,6 +19,7 @@ class PhotoObject {
     this.animalClassification,
     this.location,
     required this.userId,
+    this.encryptedImageData,
   });
 
   // Convert PhotoObject to a Map for Firestore
@@ -24,8 +28,9 @@ class PhotoObject {
       'photoPath': photoPath,
       'timestamp': timestamp,
       'animalClassification': animalClassification,
-      'location': location, // Now a Map with latitude and longitude
+      'location': location, // Map with latitude and longitude
       'userId': userId,
+      'encryptedImageData': encryptedImageData,
     };
   }
 
@@ -45,12 +50,34 @@ class PhotoObject {
           MapEntry(key, value is double ? value : (value as num).toDouble()))
           : null,
       userId: map['userId'] ?? '',
+      encryptedImageData: map['encryptedImageData'],
     );
+  }
+
+  // Get image as ImageProvider if available
+  ImageProvider? getImageProvider() {
+    if (encryptedImageData != null && encryptedImageData!.isNotEmpty) {
+      try {
+        final Uint8List imageBytes = base64Decode(encryptedImageData!);
+        return MemoryImage(imageBytes);
+      } catch (e) {
+        print("Error decoding image: $e");
+        return null;
+      }
+    }
+    return null;
+  }
+
+  // Get location as LatLng for maps
+  Map<String, double>? getLocationCoordinates() {
+    return location;
   }
 
   @override
   String toString() {
-    return 'PhotoObject(id: $id, photoPath: $photoPath, timestamp: $timestamp, animalClassification: $animalClassification, location: $location, userId: $userId)';
+    return 'PhotoObject(id: $id, photoPath: $photoPath, timestamp: $timestamp, '
+        'animalClassification: $animalClassification, location: $location, '
+        'userId: $userId, hasEncryptedImage: ${encryptedImageData != null})';
   }
 }
 
@@ -59,14 +86,14 @@ class AnimalObject {
   final String name;
   final String species;
   final String description;
-  final String? examplePhotoUrl;
+  final String? encryptedImageData; // Base64 encoded encrypted image data
 
   AnimalObject({
     this.id,
     required this.name,
     required this.species,
     required this.description,
-    this.examplePhotoUrl,
+    this.encryptedImageData,
   });
 
   // Convert AnimalObject to a Map for Firestore
@@ -75,7 +102,7 @@ class AnimalObject {
       'name': name,
       'species': species,
       'description': description,
-      'examplePhotoUrl': examplePhotoUrl,
+      'encryptedExampleImageData': encryptedImageData
     };
   }
 
@@ -86,12 +113,26 @@ class AnimalObject {
       name: map['name'] ?? '',
       species: map['species'] ?? '',
       description: map['description'] ?? '',
-      examplePhotoUrl: map['examplePhotoUrl'],
+      encryptedImageData: map['encryptedExampleImageData']
     );
+  }
+
+  ImageProvider? getImageProvider() {
+    if (encryptedImageData != null && encryptedImageData!.isNotEmpty) {
+      try {
+        final Uint8List imageBytes = base64Decode(encryptedImageData!);
+        return MemoryImage(imageBytes);
+      } catch (e) {
+        print("Error decoding example image: $e");
+        return null;
+      }
+    }
+    return null;
   }
 
   @override
   String toString() {
-    return 'AnimalObject(id: $id, name: $name, species: $species, description: $description, examplePhotoUrl: $examplePhotoUrl)';
+    return 'AnimalObject(id: $id, name: $name, species: $species, '
+        'description: $description, hasExampleImage: ${encryptedImageData != null}';
   }
 }
