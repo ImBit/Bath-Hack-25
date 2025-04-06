@@ -23,6 +23,7 @@ class CustomBottomNavigation extends StatelessWidget {
       unselectedItemColor: Colors.grey,
       showSelectedLabels: false,
       showUnselectedLabels: false,
+      backgroundColor: Color.fromRGBO(255, 166, 0, 1),
       onTap: (index) {
         if (index == currentIndex) return;
 
@@ -46,11 +47,11 @@ class CustomBottomNavigation extends StatelessWidget {
       },
       items: [
         const BottomNavigationBarItem(
-          icon: Icon(Icons.map),
+          icon: Icon(Icons.map, color: Colors.black),
           label: 'Map',
         ),
         const BottomNavigationBarItem(
-          icon: Icon(Icons.list_alt),
+          icon: Icon(Icons.list_alt, color: Colors.black),
           label: 'Journal',
         ),
         BottomNavigationBarItem(
@@ -69,11 +70,11 @@ class CustomBottomNavigation extends StatelessWidget {
           label: 'Camera',
         ),
         const BottomNavigationBarItem(
-          icon: Icon(Icons.person),
+          icon: Icon(Icons.person, color: Colors.black),
           label: 'Profile',
         ),
         const BottomNavigationBarItem(
-          icon: Icon(Icons.settings),
+          icon: Icon(Icons.settings, color: Colors.black),
           label: 'Settings',
         ),
       ],
