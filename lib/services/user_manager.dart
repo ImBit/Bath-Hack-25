@@ -34,12 +34,12 @@ class UserManager with ChangeNotifier {
   }
 
   // Get user ID or default value
-  String getUserId() {
+  static String getUserId() {
     return _currentUser?.id ?? "PLACEHOLDER";
   }
 
   // Get user's display name
-  String getUserDisplayName() {
+  static String getUserDisplayName() {
     return _currentUser?.username ?? "Guest";
   }
 
@@ -52,7 +52,7 @@ class UserManager with ChangeNotifier {
   }
 
   // Get current date and time in UTC with specified format
-  String getCurrentUtcDateTimeFormatted() {
+  static String getCurrentUtcDateTimeFormatted() {
     final now = DateTime.now().toUtc();
     return '${now.year}-'
         '${now.month.toString().padLeft(2, '0')}-'
