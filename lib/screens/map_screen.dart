@@ -5,6 +5,60 @@ import '../widgets/bottom_navigation.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+class PressableMarker extends StatefulWidget {
+  final double normalWidth;
+  final double normalHeight; 
+  final double pressedWidth;
+  final double pressedHeight;
+  final String imagePath;
+
+  const PressableMarker({
+    super.key, 
+    required this.normalWidth,
+    required this.normalHeight,
+    required this.pressedWidth,
+    required this.pressedHeight,
+    required this.imagePath,
+  });
+
+  @override
+  PressableMarkerState createState() => PressableMarkerState();
+}
+
+class PressableMarkerState extends State<PressableMarker> {
+  bool _isPressed = false; 
+
+  void _onTapDown(TapDownDetails details) {
+    setState(() => _isPressed = true);
+  }
+
+  void _onTapUp(TapUpDetails details) {
+    setState(() => _isPressed = false);
+  }
+
+  void _onTapCancel() {
+    setState(() => _isPressed = false);
+  }
+
+  @override 
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: _onTapDown,
+      onTapUp: _onTapUp,
+      onTapCancel: _onTapCancel,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: _isPressed ? widget.pressedWidth : widget.normalWidth,
+        height: _isPressed ? widget.pressedHeight : widget.normalHeight,
+        child: Image.asset(
+          widget.imagePath,
+          fit: BoxFit.contain,
+          )
+      )
+    );
+  }
+}
+
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
@@ -70,7 +124,13 @@ class _MapScreenState extends State<MapScreen> {
                         point: location,
                         width: 60,
                         height: 60,
-                        child: Image.asset('assets/Marker.png'),
+                        child: const PressableMarker(
+                          normalWidth: 60,
+                          normalHeight: 60,
+                          pressedWidth: 160,
+                          pressedHeight: 160,
+                          imagePath: 'assets/Marker.png'
+                        ),
                       ),
                     ),
                   ],
