@@ -1,33 +1,11 @@
 import 'package:animal_conservation/services/user_manager.dart';
+import 'package:animal_conservation/utils/rarity.dart';
 import 'package:flutter/material.dart';
 import '../database/database_management.dart';
 import '../database/objects/photo_object.dart';
 import '../services/animal_levelling_manager.dart';
 import '../widgets/bottom_navigation.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
-
-enum Rarity {
-  common,
-  uncommon,
-  rare,
-  legendary,
-}
-
-// Rarity to color mapping
-const rarityColors = {
-  Rarity.common: Colors.green,
-  Rarity.uncommon: Colors.blue,
-  Rarity.rare: Colors.purple,
-  Rarity.legendary: Colors.red,
-};
-
-// Rarity to string mapping
-const rarityStrings = {
-  Rarity.common: 'Common',
-  Rarity.uncommon: 'Uncommon',
-  Rarity.rare: 'Rare',
-  Rarity.legendary: 'Legendary',
-};
 
 class JournalEntry {
   final String name;
@@ -85,24 +63,6 @@ class _JournalViewState extends State<JournalView>
 
     // Load journal entries
     _loadJournalEntries();
-  }
-
-  // Method to determine rarity based on animal name/species or other factors
-  Rarity _determineRarity(AnimalObject animal) {
-    // This is a simplified implementation - can be enhanced based on actual requirements
-    switch (animal.species.toLowerCase()) {
-      case 'bird':
-        return Rarity.common;
-      case 'mammal':
-        return Rarity.uncommon;
-      case 'reptile':
-        return Rarity.rare;
-      case 'amphibian':
-      case 'fish':
-        return Rarity.legendary;
-      default:
-        return Rarity.common;
-    }
   }
 
   // Load journal entries from Firestore
@@ -175,7 +135,7 @@ class _JournalViewState extends State<JournalView>
             level: level,
             currentProgress: currentProgress,
             maxProgress: LevellingManager.getNextLevelRequirement(photoCount),
-            rarity: _determineRarity(animal),
+            rarity: Rarity.common,
             description: animal.description ?? 'No description available.',
             type: animal.species,
             photos: photos,
@@ -518,11 +478,11 @@ class AnimalDetails extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: rarityColors[entry.rarity],
+                      color: entry.rarity.color,
                       borderRadius: BorderRadius.circular(5),
                     ),
                     child: Text(
-                      rarityStrings[entry.rarity]!.toUpperCase(),
+                      entry.rarity.name.toUpperCase(),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
@@ -565,7 +525,7 @@ class AnimalDetails extends StatelessWidget {
                           child: Container(
                             height: 25,
                             decoration: BoxDecoration(
-                              color: rarityColors[entry.rarity],
+                              color: entry.rarity.color,
                               borderRadius: BorderRadius.circular(5),
                             ),
                           ),

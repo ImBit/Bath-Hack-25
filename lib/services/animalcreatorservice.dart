@@ -3,6 +3,7 @@ import 'package:animal_conservation/services/user_manager.dart';
 import 'package:http/http.dart' as http;
 import '../database/objects/photo_object.dart';
 import '../screens/journal_screen.dart';
+import '../utils/rarity.dart';
 
 class AnimalService {
   /// Generates an AnimalObject with appropriate properties when a new animal is detected

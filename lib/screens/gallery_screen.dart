@@ -13,6 +13,7 @@ import '../database/objects/photo_object.dart';
 import '../services/animalcreatorservice.dart';
 import '../services/api_service.dart';
 import '../services/location_manager.dart';
+import '../utils/rarity.dart';
 import '../utils/storage_manager.dart';
 
 class GalleryScreen extends StatefulWidget {
@@ -367,9 +368,35 @@ class _GalleryScreenState extends State<GalleryScreen> {
     List<File> imagesToRemove = [];
     Map<File, String> successfullySubmitted = {};
 
+    // Set to track files that are already being deleted to prevent duplicates
+    Set<String> processingPaths = {};
+
     for (var imageFile in _appImages) {
+      // Skip this file if we've already processed it
+      if (processingPaths.contains(imageFile.path)) {
+        continue;
+      }
+
+      // Mark this file as being processed
+      processingPaths.add(imageFile.path);
+
       final fileName = path.basename(imageFile.path);
       final animalLabel = _getAnimalLabel(imageFile);
+
+      // Check if file exists before attempting operations
+      bool fileExists;
+      try {
+        fileExists = await imageFile.exists();
+      } catch (e) {
+        _logDebug("Error checking if file exists: $e");
+        fileExists = false;
+      }
+
+      if (!fileExists) {
+        _logDebug("Skipping non-existent file: $fileName");
+        imagesToRemove.add(imageFile);
+        continue;
+      }
 
       if (animalLabel.toLowerCase() == 'blank') {
         _logDebug("Detected blank image: $fileName - removing directly");
@@ -378,6 +405,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
           imagesToRemove.add(imageFile);
         } catch (e) {
           _logDebug("Error removing blank image: $e");
+          // Still add to removal list even if deletion fails
+          imagesToRemove.add(imageFile);
         }
         continue;
       }
@@ -425,14 +454,17 @@ class _GalleryScreenState extends State<GalleryScreen> {
             firstPhoto: photoObject,
             rarity: Rarity.legendary
         );
-        _logDebug("Generated new animal object: ${animalToSave.name} with rarity ${animalToSave.rarity}");
+        _logDebug("Generated new animal object: ${animalToSave
+            .name} with rarity ${animalToSave.rarity}");
       } else {
-        _logDebug("Animal already exists: $animalLabel (ID: ${existingAnimal.id})");
+        _logDebug(
+            "Animal already exists: $animalLabel (ID: ${existingAnimal.id})");
 
         int photoCount = 1;
         try {
           if (existingAnimal.id != null) {
-            final photos = await FirestoreService.getPhotosByAnimal(existingAnimal.id!);
+            final photos = await FirestoreService.getPhotosByAnimal(
+                existingAnimal.id!);
             photoCount += photos.length;
           }
         } catch (e) {
@@ -444,7 +476,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
             newPhoto: photoObject,
             totalPhotoCount: photoCount
         );
-        _logDebug("Updated animal object: ${animalToSave.name} with count $photoCount");
+        _logDebug("Updated animal object: ${animalToSave
+            .name} with count $photoCount");
       }
 
       String? animalId;
@@ -488,13 +521,15 @@ class _GalleryScreenState extends State<GalleryScreen> {
       }
     }
 
-    int blankImageCount = imagesToRemove.where(
+    int blankImageCount = imagesToRemove
+        .where(
             (image) => !successfullySubmitted.containsKey(image)
-    ).length;
+    )
+        .length;
 
     if (successfullySubmitted.isNotEmpty || blankImageCount > 0) {
       if (mounted) {
-        await _showSubmissionSummary(successfullySubmitted, blankImageCount);
+        await _showSubmissionSummary(successfullySubmitted, 0); // todo make this 0 blank image count.
       }
 
       for (var image in imagesToRemove) {
@@ -513,16 +548,31 @@ class _GalleryScreenState extends State<GalleryScreen> {
         _appImages.removeWhere((image) => imagesToRemove.contains(image));
       });
 
+      // Rest of your code for showing summary etc.
+      int blankImageCount = imagesToRemove
+          .where(
+              (image) => !successfullySubmitted.containsKey(image)
+      )
+          .length;
+
+      if (successfullySubmitted.isNotEmpty || blankImageCount > 0) {
+        if (mounted) {
+          await _showSubmissionSummary(successfullySubmitted, blankImageCount);
+        }
+      }
+
+      // Load fresh images after processing
       await _loadImagesFromStorage();
-    }
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Saved $savedCount analysed images to database'))
-      );
-    }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Saved $savedCount analysed images to database'))
+        );
+      }
 
-    _logDebug("Database save complete: $savedCount images saved");
+      _logDebug("Database save complete: $savedCount images saved");
+    }
   }
 
   Future<void> _showSubmissionSummary(Map<File, String> submittedImages, int blankImageCount) async {

@@ -384,7 +384,7 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
                 // Navigate to gallery screen
                 _navigateToGallery();
               },
-              child: const Text('Go to Submit Gallery'),
+              child: const Text('Submit Photos'),
             ),
             TextButton(
               onPressed: () {
