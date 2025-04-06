@@ -2,13 +2,15 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
+
 
 class PhotoObject {
   String? id;
   final String photoPath;
   final DateTime timestamp;
   final String? animalClassification;
-  final Map<String, double>? location;
+  final List<double>? location; // [latitude, longitude]
   final String userId;
   final String? encryptedImageData;
 
@@ -28,7 +30,7 @@ class PhotoObject {
       'photoPath': photoPath,
       'timestamp': timestamp,
       'animalClassification': animalClassification,
-      'location': location, // Map with latitude and longitude
+      'location': location, // List with [latitude, longitude]
       'userId': userId,
       'encryptedImageData': encryptedImageData,
     };
@@ -36,6 +38,16 @@ class PhotoObject {
 
   // Create PhotoObject from Firestore data
   factory PhotoObject.fromMap(Map<String, dynamic> map, {String? docId}) {
+    // Handle location data as a list
+    List<double>? locationData;
+    if (map['location'] != null) {
+      if (map['location'] is List) {
+        locationData = (map['location'] as List)
+            .map((item) => item is double ? item : (item as num).toDouble())
+            .toList();
+      }
+    }
+
     return PhotoObject(
       id: docId,
       photoPath: map['photoPath'] ?? '',
@@ -45,10 +57,7 @@ class PhotoObject {
           ? (map['timestamp'] as Timestamp).toDate()
           : DateTime.now()),
       animalClassification: map['animalClassification'],
-      location: map['location'] != null
-          ? (map['location'] as Map<String, dynamic>).map((key, value) =>
-          MapEntry(key, value is double ? value : (value as num).toDouble()))
-          : null,
+      location: locationData,
       userId: map['userId'] ?? '',
       encryptedImageData: map['encryptedImageData'],
     );
@@ -68,9 +77,12 @@ class PhotoObject {
     return null;
   }
 
-  // Get location as LatLng for maps
-  Map<String, double>? getLocationCoordinates() {
-    return location;
+  // Get latitude and longitude as LatLng object
+  LatLng? getLatLng() {
+    if (location != null && location!.length >= 2) {
+      return LatLng(location![0], location![1]);
+    }
+    return null;
   }
 
   @override
