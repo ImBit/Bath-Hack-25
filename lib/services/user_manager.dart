@@ -15,31 +15,34 @@ class UserManager with ChangeNotifier {
   // The currently active user
   static UserObject? _currentUser;
 
-  // Getter for the current user
-  UserObject? get currentUser => _currentUser;
+  // Static getter for the current user (NEW)
+  static UserObject? get getCurrentUser => _currentUser;
 
   // Check if a user is logged in
   bool get isLoggedIn => _currentUser != null;
 
+  // Static method to check if user is logged in (NEW)
+  static bool get isUserLoggedIn => _currentUser != null;
+
   // Set the current user and notify listeners
-  void setCurrentUser(UserObject user) {
+  static void setCurrentUser(UserObject user) {
     _currentUser = user;
-    notifyListeners();
+    // notifyListeners();
   }
 
   // Log out the current user
-  void logout() {
+  static void logout() {
     _currentUser = null;
-    notifyListeners();
+    // notifyListeners();
   }
 
   // Get user ID or default value
-  String getUserId() {
+  static String getUserId() {
     return _currentUser?.id ?? "PLACEHOLDER";
   }
 
   // Get user's display name
-  String getUserDisplayName() {
+  static String getUserDisplayName() {
     return _currentUser?.username ?? "Guest";
   }
 
@@ -52,7 +55,7 @@ class UserManager with ChangeNotifier {
   }
 
   // Get current date and time in UTC with specified format
-  String getCurrentUtcDateTimeFormatted() {
+  static String getCurrentUtcDateTimeFormatted() {
     final now = DateTime.now().toUtc();
     return '${now.year}-'
         '${now.month.toString().padLeft(2, '0')}-'

@@ -8,7 +8,6 @@ import 'database_management.dart';
 import 'objects/photo_object.dart';
 
 class AnimalDatabasePopulator {
-  final FirestoreService _firestoreService = FirestoreService();
 
   // Function to load the animal data from a JSON file
   Future<List<String>> _loadAnimalDataFromJson() async {
@@ -55,8 +54,7 @@ class AnimalDatabasePopulator {
       id: id,
       name: name,
       species: species,
-      description: description,
-      examplePhotoUrl: null,
+      description: description
     );
   }
 
@@ -102,7 +100,7 @@ class AnimalDatabasePopulator {
 
       for (var line in animalDataLines) {
         final AnimalObject animal = _parseAnimalLine(line);
-        String? result = await _firestoreService.saveAnimal(animal);
+        String? result = await FirestoreService.saveAnimal(animal);
 
         if (result != null) {
           success++;

@@ -12,7 +12,7 @@ class UserObject {
   String pfp;
 
   UserObject({
-    this.id,
+    required this.id,
     required this.username,
     required this.password,
     this.bio = "--empty bio--",

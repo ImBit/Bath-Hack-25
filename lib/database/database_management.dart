@@ -6,7 +6,7 @@ import 'objects/photo_object.dart';
 
 class FirestoreService {
   // Initialize Firebase (only once is better)
-  Future<void> _initializeFirebase() async {
+  static Future<void> _initializeFirebase() async {
     try {
       await Firebase.initializeApp();
     } catch (e) {
@@ -15,13 +15,13 @@ class FirestoreService {
   }
 
   // Get FirebaseFirestore instance
-  Future<FirebaseFirestore> get _db async {
+  static Future<FirebaseFirestore> get _db async {
     await _initializeFirebase();
     return FirebaseFirestore.instance;
   }
 
 // Get user by ID
-  Future<UserObject?> getUserById(String userId) async {
+  static Future<UserObject?> getUserById(String userId) async {
     final db = await _db;
     try {
       final docSnapshot = await db.collection("users").doc(userId).get();
@@ -37,7 +37,7 @@ class FirestoreService {
   }
 
 // Get user by username
-  Future<UserObject?> getUserByUsername(String username) async {
+  static Future<UserObject?> getUserByUsername(String username) async {
     final db = await _db;
     try {
       final querySnapshot = await db
@@ -60,8 +60,7 @@ class FirestoreService {
     }
   }
 
-// Save or update user
-  Future<String?> saveUser(UserObject user) async {
+  static Future<String?> saveUser(UserObject user) async {
     final db = await _db;
     try {
       if (user.id != null) {
@@ -84,8 +83,7 @@ class FirestoreService {
     }
   }
 
-// Check if username is available
-  Future<bool> isUsernameAvailable(String username) async {
+  static Future<bool> isUsernameAvailable(String username) async {
     final db = await _db;
     try {
       final querySnapshot = await db
@@ -102,7 +100,7 @@ class FirestoreService {
   }
 
 // User login
-  Future<UserObject?> login(String username, String password) async {
+  static Future<UserObject?> login(String username, String password) async {
     try {
       final user = await getUserByUsername(username);
       if (user == null) {
@@ -125,7 +123,7 @@ class FirestoreService {
   // PHOTO RELATED FUNCTIONS
 
   // Save or update photo
-  Future<String?> savePhoto(PhotoObject photo) async {
+  static Future<String?> savePhoto(PhotoObject photo) async {
     final db = await _db;
     try {
       if (photo.id != null) {
@@ -144,7 +142,7 @@ class FirestoreService {
   }
 
   // Get photo by ID
-  Future<PhotoObject?> getPhotoById(String photoId) async {
+  static Future<PhotoObject?> getPhotoById(String photoId) async {
     final db = await _db;
     try {
       final docSnapshot = await db.collection("photos").doc(photoId).get();
@@ -160,7 +158,7 @@ class FirestoreService {
   }
 
   // Get all photos for a user
-  Future<List<PhotoObject>> getPhotosByUser(String userId) async {
+  static Future<List<PhotoObject>> getPhotosByUser(String userId) async {
     final db = await _db;
     try {
       final querySnapshot = await db
@@ -182,7 +180,7 @@ class FirestoreService {
   }
 
   // Get photos by animal classification
-  Future<List<PhotoObject>> getPhotosByAnimal(String animalClassification) async {
+  static Future<List<PhotoObject>> getPhotosByAnimal(String animalClassification) async {
     final db = await _db;
     try {
       final querySnapshot = await db
@@ -204,7 +202,7 @@ class FirestoreService {
   }
 
   // Delete photo
-  Future<bool> deletePhoto(String photoId) async {
+  static Future<bool> deletePhoto(String photoId) async {
     final db = await _db;
     try {
       await db.collection("photos").doc(photoId).delete();
@@ -216,7 +214,7 @@ class FirestoreService {
   }
 
   // Update photo with animal classification
-  Future<bool> classifyPhoto(String photoId, String animalClassificationId) async {
+  static Future<bool> classifyPhoto(String photoId, String animalClassificationId) async {
     final db = await _db;
     try {
       await db.collection("photos").doc(photoId).update({
@@ -232,7 +230,7 @@ class FirestoreService {
   // ANIMAL RELATED FUNCTIONS
 
   // Save or update animal
-  Future<String?> saveAnimal(AnimalObject animal) async {
+  static Future<String?> saveAnimal(AnimalObject animal) async {
     final db = await _db;
     try {
       if (animal.id != null) {
@@ -257,7 +255,7 @@ class FirestoreService {
   }
 
   // Get animal by ID
-  Future<AnimalObject?> getAnimalById(String animalId) async {
+  static Future<AnimalObject?> getAnimalById(String animalId) async {
     final db = await _db;
     try {
       final docSnapshot = await db.collection("animals").doc(animalId).get();
@@ -273,7 +271,7 @@ class FirestoreService {
   }
 
   // Get animal by name
-  Future<AnimalObject?> getAnimalByName(String name) async {
+  static Future<AnimalObject?> getAnimalByName(String name) async {
     final db = await _db;
     try {
       final querySnapshot = await db
@@ -297,7 +295,7 @@ class FirestoreService {
   }
 
   // Get all animals
-  Future<List<AnimalObject>> getAllAnimals() async {
+  static Future<List<AnimalObject>> getAllAnimals() async {
     final db = await _db;
     try {
       final querySnapshot = await db
@@ -318,7 +316,7 @@ class FirestoreService {
   }
 
   // Get animals by species
-  Future<List<AnimalObject>> getAnimalsBySpecies(String species) async {
+  static Future<List<AnimalObject>> getAnimalsBySpecies(String species) async {
     final db = await _db;
     try {
       final querySnapshot = await db
@@ -340,7 +338,7 @@ class FirestoreService {
   }
 
   // Delete animal
-  Future<bool> deleteAnimal(String animalId) async {
+  static Future<bool> deleteAnimal(String animalId) async {
     final db = await _db;
     try {
       await db.collection("animals").doc(animalId).delete();
@@ -354,7 +352,7 @@ class FirestoreService {
   // LINKING PHOTOS AND ANIMALS
 
   // Link photo to animal - this both updates the photo and ensures the animal exists
-  Future<bool> linkPhotoToAnimal(String photoId, AnimalObject animal) async {
+  static Future<bool> linkPhotoToAnimal(String photoId, AnimalObject animal) async {
     try {
       // First ensure the animal exists in database
       String? animalId = await saveAnimal(animal);
@@ -372,7 +370,7 @@ class FirestoreService {
   }
 
   // Get photos with their associated animal data
-  Future<List<Map<String, dynamic>>> getPhotosWithAnimalData(String userId) async {
+  static Future<List<Map<String, dynamic>>> getPhotosWithAnimalData(String userId) async {
     try {
       // Get all photos for user
       final photos = await getPhotosByUser(userId);
@@ -403,7 +401,7 @@ class FirestoreService {
   }
 
   // Pre-populate animal database with common species
-  Future<void> populateAnimalDatabase(List<AnimalObject> animals) async {
+  static Future<void> populateAnimalDatabase(List<AnimalObject> animals) async {
     for (var animal in animals) {
       await saveAnimal(animal);
     }
