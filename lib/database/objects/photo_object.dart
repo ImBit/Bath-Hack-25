@@ -98,77 +98,38 @@ class AnimalObject {
   String? id;
   final String name;
   final String species;
-  final String description;
-  final String rarity;
-  final String? encryptedImageData; // Base64 encoded encrypted image data
+  final String? description;
+  final String? imageUrl;
+  final String? rarity;
 
   AnimalObject({
-    this.id,
+    required this.id,
     required this.name,
     required this.species,
-    required this.description,
-    required this.rarity,
-    this.encryptedImageData,
+    this.description,
+    this.imageUrl,
+    this.rarity
   });
 
-  // Convert AnimalObject to a Map for Firestore
-  Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'species': species,
-      'description': description,
-      'rarity': rarity,
-      'encryptedExampleImageData': encryptedImageData
-    };
-  }
-
-  // Create AnimalObject from Firestore data
+  // Create an AnimalObject from a Map (JSON)
   factory AnimalObject.fromMap(Map<String, dynamic> map, {String? docId}) {
     return AnimalObject(
       id: docId,
       name: map['name'] ?? '',
       species: map['species'] ?? '',
-      description: map['description'] ?? '',
-      rarity: map['rarity'] ?? '',
-      encryptedImageData: map['encryptedExampleImageData'],
+      description: map['description'],
+      imageUrl: map['imageUrl']
     );
   }
 
-  static Rarity fromString(String rarity) {
-    switch (rarity.toLowerCase()) {
-      case 'common': // Rarity.common.name
-        return Rarity.common;
-      case 'uncommon': // Rarity.uncommon.name
-        return Rarity.uncommon;
-      case 'rare': // Rarity.rare.name
-        return Rarity.rare;
-      case 'legendary': // Rarity.legendary.name
-        return Rarity.legendary;
-      default:
-        throw ArgumentError('Unknown rarity: $rarity');
-    }
-  }
-
-  String toReadableString() {
-    return toString().split('.').last.replaceAll('_', ' ');
-  }
-
-  ImageProvider? getImageProvider() {
-    if (encryptedImageData != null && encryptedImageData!.isNotEmpty) {
-      try {
-        final Uint8List imageBytes = base64Decode(encryptedImageData!);
-        return MemoryImage(imageBytes);
-      } catch (e) {
-        print("Error decoding example image: $e");
-        return null;
-      }
-    }
-    return null;
-  }
-
-  @override
-  String toString() {
-    return 'AnimalObject(id: $id, name: $name, species: $species, '
-        'description: $description, rarity: $rarity, hasExampleImage: ${encryptedImageData != null})';
+  // Convert an AnimalObject to a Map (JSON)
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'species': species,
+      'description': description,
+      'imageUrl': imageUrl,
+      'rarity': rarity
+    };
   }
 }

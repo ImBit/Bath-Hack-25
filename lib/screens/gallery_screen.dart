@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import '../database/database_management.dart';
 import '../database/objects/photo_object.dart';
+import '../services/animalcreatorservice.dart';
 import '../services/api_service.dart';
 import '../services/location_manager.dart';
 import '../utils/storage_manager.dart';
@@ -492,13 +493,13 @@ class _GalleryScreenState extends State<GalleryScreen> {
       final currentUser = UserManager.getCurrentUser;
 
       if (currentUser == null || currentUser.id == null) {
-        _logDebug("User not logged in or missing ID, using default 'ImBit' username");
+        _logDebug("User not logged in or missing ID, using default username");
 
         // Try to find the user by username
-        final userFromDB = await FirestoreService.getUserByUsername("ImBit");
+        final userFromDB = await FirestoreService.getUserByUsername("PLACEHOLDER");
 
         if (userFromDB == null || userFromDB.id == null) {
-          _logDebug("Failed to find user 'ImBit' in database");
+          _logDebug("Failed to find user in database");
 
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -556,13 +557,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
         _logDebug("Error getting location: $e");
       }
 
-      // Get current date and time in UTC format
-      String currentDateTime = UserManager.getCurrentUtcDateTimeFormatted();
-      _logDebug("Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): $currentDateTime");
-      _logDebug("Current User's Login: ${UserManager.getCurrentUser?.username ?? 'None'}");
-
       // Create photo object with the correct structure
-      final photoObject = PhotoObject(
+      var photoObject = PhotoObject(
         id: null,
         userId: userId,
         photoPath: imageFile.path,
@@ -580,39 +576,82 @@ class _GalleryScreenState extends State<GalleryScreen> {
         _logDebug("Error finding animal by name: $e");
       }
 
-      // If animal doesn't exist, create new one
+      AnimalObject animalToSave;
+
       if (existingAnimal == null) {
-        existingAnimal = AnimalObject(
-          id: null,
-          name: animalLabel,
-          species: animalLabel,
-          description: "Detected on $currentDateTime UTC",
-          rarity: Rarity.common.name,
-          encryptedImageData: null,
+        // If this is a new animal, generate a new AnimalObject
+        _logDebug("Creating new animal: $animalLabel");
+
+        // Determine initial rarity - new discoveries are always legendary
+        animalToSave = await AnimalService.generateAnimalObject(
+            animalName: animalLabel,
+            species: animalLabel,
+            firstPhoto: photoObject,
+            rarity: Rarity.legendary
         );
-        _logDebug("Created new animal object: ${existingAnimal.name}");
+        _logDebug("Generated new animal object: ${animalToSave.name} with rarity ${animalToSave.rarity}");
+      } else {
+        // If animal exists, count how many photos we already have of it
+        _logDebug("Animal already exists: $animalLabel (ID: ${existingAnimal.id})");
+
+        // Get count of existing photos for this animal
+        int photoCount = 1; // Start with 1 for the current photo
+        try {
+          if (existingAnimal.id != null) {
+            final photos = await FirestoreService.getPhotosByAnimal(existingAnimal.id!);
+            photoCount += photos.length;
+          }
+        } catch (e) {
+          _logDebug("Error counting existing photos: $e");
+        }
+
+        // Update the existing animal
+        animalToSave = await AnimalService.updateAnimalObject(
+            existingAnimal: existingAnimal,
+            newPhoto: photoObject,
+            totalPhotoCount: photoCount
+        );
+        _logDebug("Updated animal object: ${animalToSave.name} with count $photoCount");
       }
 
-      // Save photo to database
+      // Save the animal to database first
+      String? animalId;
+      try {
+        animalId = await FirestoreService.saveAnimal(animalToSave);
+        if (animalId == null || animalId.isEmpty) {
+          _logDebug("Failed to save animal: ${animalToSave.name}");
+          continue;
+        }
+        _logDebug("Animal saved with ID: $animalId");
+
+        // Update the photo object with the animal classification
+        photoObject = PhotoObject(
+          id: photoObject.id,
+          userId: photoObject.userId,
+          photoPath: photoObject.photoPath,
+          timestamp: photoObject.timestamp,
+          location: photoObject.location,
+          animalClassification: animalId, // Now we have the animal ID
+          encryptedImageData: photoObject.encryptedImageData,
+        );
+      } catch (e) {
+        _logDebug("Error saving animal: $e");
+        continue;
+      }
+
+      // Now save the photo to database
       String? photoId;
       try {
         photoId = await FirestoreService.savePhoto(photoObject);
 
         if (photoId != null && photoId.isNotEmpty) {
-          // Link photo to the animal
-          final success = await FirestoreService.linkPhotoToAnimal(photoId, existingAnimal);
-
-          if (success) {
-            _logDebug("Successfully saved and linked: $fileName -> $animalLabel");
-            savedCount++;
-          } else {
-            _logDebug("Failed to link photo to animal");
-          }
+          _logDebug("Photo saved with ID: $photoId");
+          savedCount++;
         } else {
           _logDebug("Failed to save photo: $fileName");
         }
       } catch (e) {
-        _logDebug("Error during save/link process: $e");
+        _logDebug("Error saving photo: $e");
       }
     }
 

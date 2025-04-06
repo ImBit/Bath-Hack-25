@@ -15,6 +15,20 @@ class LevellingManager {
     return (numberOfPhotos / _photosPerLevel).floor() + 1;
   }
 
+  /// Returns the current progress within the level
+  /// This is the number of photos in the current level
+  static int getProgress(int numberOfPhotos) {
+    int currentLevel = getLevel(numberOfPhotos);
+    int minPhotosForCurrentLevel = (currentLevel - 1) * _photosPerLevel;
+    return numberOfPhotos - minPhotosForCurrentLevel;
+  }
+
+  /// Returns the total photos required to reach the next level
+  static int getNextLevelRequirement(int numberOfPhotos) {
+    // Always return _photosPerLevel as this is the number of photos needed within each level
+    return _photosPerLevel;
+  }
+
   /// Returns the proportion to the next level (0.0 to 1.0)
   /// For example:
   /// - 7 photos = 0.4 (2/5 of the way from level 2 to level 3)

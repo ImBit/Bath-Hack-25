@@ -1,4 +1,8 @@
+import 'package:animal_conservation/services/user_manager.dart';
 import 'package:flutter/material.dart';
+import '../database/database_management.dart';
+import '../database/objects/photo_object.dart';
+import '../services/animal_levelling_manager.dart';
 import '../widgets/bottom_navigation.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
@@ -33,6 +37,8 @@ class JournalEntry {
   final int maxProgress;
   final Rarity rarity;
   final String description;
+  final String type;
+  final List<PhotoObject> photos; // Added to store associated photos
 
   JournalEntry({
     required this.name,
@@ -42,6 +48,8 @@ class JournalEntry {
     required this.maxProgress,
     required this.rarity,
     required this.description,
+    required this.type,
+    required this.photos,
   });
 }
 
@@ -54,40 +62,10 @@ class JournalView extends StatefulWidget {
 
 class _JournalViewState extends State<JournalView>
     with SingleTickerProviderStateMixin {
-  final List<JournalEntry> entries = [
-    JournalEntry(
-        name: 'Pigeon',
-        image: const NetworkImage(
-            'https://static.vecteezy.com/system/resources/previews/010/345/372/non_2x/pigeon-bird-color-icon-illustration-vector.jpg'),
-        level: 'Level 1',
-        currentProgress: 50,
-        maxProgress: 100,
-        rarity: Rarity.common,
-        description:
-            'Feared by crumbs, respected by couriers, the **rock pigeon** (*Columba livia*) is a master of the urban biome. Descended from wild cliff-dwelling ancestors, it now commands the skies of cityscapes worldwide, nesting on ledges and high-rises as if they were ancient seaside cliffs.\n\nWith a built-in biological compass, it can sense Earth’s magnetic fields and the position of the sun, allowing it to navigate home from over 1,000 miles away—a skill so precise, humans once relied on it in war.'),
-    JournalEntry(
-        name: 'Fox',
-        image: const AssetImage('assets/fox.webp'),
-        level: 'Level 2',
-        currentProgress: 40,
-        maxProgress: 50,
-        rarity: Rarity.uncommon,
-        description:
-            'Slinking through twilight like a living shadow, the **red fox** (*Vulpes vulpes*) is nature\'s stealth specialist. With ears fine-tuned to the rustle of a mouse beneath snow and paws padded for silent pursuit, it hunts with uncanny precision—sometimes leaping high into the air to pounce with acrobatic flair.\n\nFound from Arctic tundra to suburban sprawl, this adaptable creature has the widest range of any wild canid, thriving anywhere stealth and cunning can earn a meal.'),
-    JournalEntry(
-        name: 'Humpback Whale',
-        image: const AssetImage('assets/whale.jpg'),
-        level: 'Level 1',
-        currentProgress: 1,
-        maxProgress: 10,
-        rarity: Rarity.legendary,
-        description:
-            'Gliding through the ocean\'s blue vastness, the **humpback whale** (*Megaptera novaeangliae*) is a leviathan with the soul of a singer. Its eerie, echoing songs can travel hundreds of miles underwater, weaving patterns that may help with navigation, communication, or even courtship.\n\nEach year, it migrates vast distances—up to 16,000 miles round trip—guided by instinct alone. Despite weighing as much as a school bus, it breaches in spectacular arcs, a creature of both power and grace.')
-    // Add more entries as needed
-  ];
-
   late Animation<double> animation;
   late AnimationController controller;
+  List<JournalEntry> entries = [];
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -104,24 +82,130 @@ class _JournalViewState extends State<JournalView>
         }
       });
     controller.forward();
+
+    // Load journal entries
+    _loadJournalEntries();
+  }
+
+  // Method to determine rarity based on animal name/species or other factors
+  Rarity _determineRarity(AnimalObject animal) {
+    // This is a simplified implementation - can be enhanced based on actual requirements
+    switch (animal.species.toLowerCase()) {
+      case 'bird':
+        return Rarity.common;
+      case 'mammal':
+        return Rarity.uncommon;
+      case 'reptile':
+        return Rarity.rare;
+      case 'amphibian':
+      case 'fish':
+        return Rarity.legendary;
+      default:
+        return Rarity.common;
+    }
+  }
+
+  // Load journal entries from Firestore
+  Future<void> _loadJournalEntries() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      // Get current user ID from provider
+      final userId = UserManager.getUserId();
+
+      if (userId == null) {
+        print("No user logged in");
+        setState(() {
+          isLoading = false;
+        });
+        return;
+      }
+
+      // Get photos with animal data for the current user
+      final photosWithAnimalData = await FirestoreService.getPhotosWithAnimalData(userId);
+
+      // Group photos by animal
+      Map<String, List<Map<String, dynamic>>> animalGroups = {};
+
+      for (var item in photosWithAnimalData) {
+        final photo = item['photo'] as PhotoObject;
+        final animal = item['animal'] as AnimalObject?;
+
+        if (animal != null) {
+          if (!animalGroups.containsKey(animal.id)) {
+            animalGroups[animal.id!] = [];
+          }
+          animalGroups[animal.id]!.add(item);
+        }
+      }
+
+      // Create journal entries from grouped data
+      List<JournalEntry> loadedEntries = [];
+
+      for (var animalId in animalGroups.keys) {
+        final animalData = animalGroups[animalId]!;
+        final animal = animalData.first['animal'] as AnimalObject;
+        final photos = animalData.map((item) => item['photo'] as PhotoObject).toList();
+
+        // Calculate progress based on number of photos
+        final photoCount = photos.length;
+        final maxPhotos = LevellingManager.getPhotosNeededForNextLevel(photoCount);
+        final currentProgress = LevellingManager.getProgress(photoCount);
+        final level = "Level ${LevellingManager.getLevel(photoCount)}";
+
+        // Determine image to use
+        ImageProvider<Object> image;
+        if (animal.imageUrl != null && animal.imageUrl!.isNotEmpty) {
+          image = NetworkImage(animal.imageUrl!);
+        } else if (photos.isNotEmpty && photos.first.getImageProvider() != null) {
+          // Use the first photo's image provider as fallback
+          image = photos.first.getImageProvider()!;
+        } else {
+          // Default image if no image available
+          image = const AssetImage('assets/default_animal.webp');
+        }
+
+        // Create journal entry
+        loadedEntries.add(
+          JournalEntry(
+            name: animal.name,
+            image: image,
+            level: level,
+            currentProgress: currentProgress,
+            maxProgress: LevellingManager.getNextLevelRequirement(photoCount),
+            rarity: _determineRarity(animal),
+            description: animal.description ?? 'No description available.',
+            type: animal.species,
+            photos: photos,
+          ),
+        );
+      }
+
+      setState(() {
+        entries = loadedEntries;
+        isLoading = false;
+      });
+
+    } catch (e) {
+      print("Error loading journal entries: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Journal',
-          // style: TextStyle(
-          //   fontWeight: FontWeight.bold,
-          //   color: Colors.white,
-          //   shadows: 
-          // ),
-        ),
-        backgroundColor: Color.fromRGBO(255, 166, 0, 1),
+        title: const Text('Journal'),
+        backgroundColor: const Color.fromRGBO(255, 166, 0, 1),
       ),
       body: Stack(
         children: [
+          // Background gradient
           Container(
             decoration: const BoxDecoration(
               gradient: RadialGradient(
@@ -133,9 +217,10 @@ class _JournalViewState extends State<JournalView>
                 ],
               ),
             ),
-            child:
-                const SizedBox.expand(), // Makes the container fill the parent
+            child: const SizedBox.expand(),
           ),
+
+          // Star pattern background
           Positioned.fill(
             child: Image.asset(
               'assets/images/star_pattern.png',
@@ -144,153 +229,29 @@ class _JournalViewState extends State<JournalView>
               alignment: FractionalOffset(animation.value, animation.value / 4),
             ),
           ),
+
+          // Content
           Center(
-            child: Padding(
+            child: isLoading
+                ? const CircularProgressIndicator()
+                : entries.isEmpty
+                ? const Center(
+              child: Text(
+                'No entries found. Start taking photos of animals!',
+                style: TextStyle(fontSize: 18),
+                textAlign: TextAlign.center,
+              ),
+            )
+                : Padding(
               padding: const EdgeInsets.all(8),
               child: ListView.builder(
-                itemCount: entries.length, // Number of entries to display
+                itemCount: entries.length,
                 itemBuilder: (context, index) {
                   final entry = entries[index];
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: GestureDetector(
-                      onTap: () {
-                        showDialog<String>(
-                          context: context,
-                          builder: (BuildContext context) => Dialog(
-                            // backgroundColor: Color.fromRGBO(255, 255, 255, 0.8),
-                            insetPadding: const EdgeInsets.only(
-                              left: 20,
-                              right: 20,
-                              top: 70,
-                              bottom: 110,
-                            ),
-                            child: Stack(
-                              children: [
-                                Positioned.fill(
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(16),
-                                    child: Image.asset(
-                                      'assets/images/dot.png',
-                                      repeat: ImageRepeat.repeat,
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: <Widget>[
-                                      AnimalDetails(entry: entry),
-                                      const SizedBox(height: 8),
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        // Type: Bird
-                                        child: MarkdownBody(
-                                          data: 'Type: **Bird**',
-                                          styleSheet: MarkdownStyleSheet(
-                                            p: const TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const Divider(),
-                                      Expanded(
-                                        child: RawScrollbar(
-                                          child: ListView(children: [
-                                            MarkdownBody(
-                                              data: entry.description,
-                                              // styleSheet: MarkdownStyleSheet(
-                                              //   p: const TextStyle(
-                                              //     fontSize: 16,
-                                              //     color: Colors.black,
-                                              //   ),
-                                              // ),
-                                            ),
-                                            const Divider(),
-                                            const Text(
-                                              'Recent sightings',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            Card(
-                                              color: Colors.grey[300],
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(12),
-                                                child: Row(
-                                                  children: [
-                                                    const Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Row(
-                                                          children: [
-                                                            Icon(Icons
-                                                                .calendar_month),
-                                                            SizedBox(width: 8),
-                                                            Text(
-                                                                "1 Apr 2025 (4 days ago)"),
-                                                          ],
-                                                        ),
-                                                        SizedBox(height: 8),
-                                                        Row(
-                                                          children: [
-                                                            Icon(Icons
-                                                                .location_on),
-                                                            SizedBox(width: 8),
-                                                            Text(
-                                                                "University of Bath"),
-                                                          ],
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    Expanded(
-                                                      child: Align(
-                                                        alignment: Alignment
-                                                            .centerRight,
-                                                        child: ClipRRect(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(8),
-                                                          child: const Image(
-                                                            image: AssetImage(
-                                                                'assets/pigeon.webp'),
-                                                            height: 75,
-                                                            width: 75,
-                                                            fit: BoxFit.cover,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ]),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                        },
-                                        child: const Text('Close'),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+                      onTap: () => _showAnimalDetails(entry),
                       child: Card(
                         color: Colors.grey[300],
                         child: Container(
@@ -299,49 +260,25 @@ class _JournalViewState extends State<JournalView>
                               begin: Alignment.topLeft,
                               end: const Alignment(0, 2),
                               stops: const [
-                                0,
-                                0.125,
-                                0.125,
-                                0.25,
-                                0.25,
-                                0.375,
-                                0.375,
-                                0.5,
-                                0.5,
-                                0.625,
-                                0.625,
-                                0.75,
-                                0.75,
-                                0.875,
-                                0.875,
-                                1,
+                                0, 0.125, 0.125, 0.25, 0.25, 0.375, 0.375, 0.5,
+                                0.5, 0.625, 0.625, 0.75, 0.75, 0.875, 0.875, 1
                               ],
                               colors: [
-                                Colors.grey[300]!,
-                                Colors.grey[300]!,
-                                Colors.grey[200]!,
-                                Colors.grey[200]!,
-                                Colors.grey[300]!,
-                                Colors.grey[300]!,
-                                Colors.grey[200]!,
-                                Colors.grey[200]!,
-                                Colors.grey[300]!,
-                                Colors.grey[300]!,
-                                Colors.grey[200]!,
-                                Colors.grey[200]!,
-                                Colors.grey[300]!,
-                                Colors.grey[300]!,
-                                Colors.grey[200]!,
-                                Colors.grey[200]!,
+                                Colors.grey[300]!, Colors.grey[300]!,
+                                Colors.grey[200]!, Colors.grey[200]!,
+                                Colors.grey[300]!, Colors.grey[300]!,
+                                Colors.grey[200]!, Colors.grey[200]!,
+                                Colors.grey[300]!, Colors.grey[300]!,
+                                Colors.grey[200]!, Colors.grey[200]!,
+                                Colors.grey[300]!, Colors.grey[300]!,
+                                Colors.grey[200]!, Colors.grey[200]!,
                               ],
                               tileMode: TileMode.repeated,
                             ),
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(12),
-                            child: AnimalDetails(
-                              entry: entry,
-                            ),
+                            child: AnimalDetails(entry: entry),
                           ),
                         ),
                       ),
@@ -355,6 +292,170 @@ class _JournalViewState extends State<JournalView>
       ),
       bottomNavigationBar: const CustomBottomNavigation(currentIndex: 1),
     );
+  }
+
+  void _showAnimalDetails(JournalEntry entry) {
+    showDialog<String>(
+      context: context,
+      builder: (BuildContext context) => Dialog(
+        insetPadding: const EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 70,
+          bottom: 110,
+        ),
+        child: Stack(
+          children: [
+            // Dotted background pattern
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.asset(
+                  'assets/images/dot.png',
+                  repeat: ImageRepeat.repeat,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  AnimalDetails(entry: entry),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: MarkdownBody(
+                      data: 'Type: **${entry.type}**',
+                      styleSheet: MarkdownStyleSheet(
+                        p: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Divider(),
+                  Expanded(
+                    child: RawScrollbar(
+                      child: ListView(children: [
+                        // Description section
+                        MarkdownBody(
+                          data: entry.description,
+                        ),
+                        const Divider(),
+                        const Text(
+                          'Recent sightings',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+
+                        // Show recent photos
+                        ...entry.photos.take(3).map((photo) => _buildRecentSighting(photo)).toList(),
+                      ]),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Close'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecentSighting(PhotoObject photo) {
+    return Card(
+      color: Colors.grey[300],
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.calendar_month),
+                      const SizedBox(width: 8),
+                      Text(_formatDate(photo.timestamp)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on),
+                      const SizedBox(width: 8),
+                      Text('Unknown location'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: photo.getImageProvider() != null
+                  ? Image(
+                image: photo.getImageProvider()!,
+                height: 75,
+                width: 75,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    Container(
+                      height: 75,
+                      width: 75,
+                      color: Colors.grey,
+                      child: const Icon(Icons.error),
+                    ),
+              )
+                  : Container(
+                height: 75,
+                width: 75,
+                color: Colors.grey,
+                child: const Icon(Icons.photo),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'Unknown date';
+
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays < 1) {
+      return 'Today';
+    } else if (difference.inDays == 1) {
+      return 'Yesterday';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} days ago';
+    } else {
+      return '${date.day} ${_getMonth(date.month)} ${date.year}';
+    }
+  }
+
+  String _getMonth(int month) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return months[month - 1];
   }
 
   @override
@@ -382,37 +483,36 @@ class AnimalDetails extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Name
+              // Name and Rarity
               Row(
                 children: [
-                  Text(
-                    entry.name,
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.start,
-                  ),
-                  // Rarity
                   Expanded(
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: rarityColors[entry.rarity],
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: Text(
-                          rarityStrings[entry.rarity]!.toUpperCase(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                    child: Text(
+                      entry.name,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.start,
+                    ),
+                  ),
+                  // Rarity badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: rarityColors[entry.rarity],
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: Text(
+                      rarityStrings[entry.rarity]!.toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
@@ -447,7 +547,7 @@ class AnimalDetails extends StatelessWidget {
                         FractionallySizedBox(
                           alignment: Alignment.centerLeft,
                           widthFactor:
-                              entry.currentProgress / entry.maxProgress,
+                          entry.currentProgress / entry.maxProgress,
                           child: Container(
                             height: 25,
                             decoration: BoxDecoration(
@@ -456,6 +556,7 @@ class AnimalDetails extends StatelessWidget {
                             ),
                           ),
                         ),
+                        // Progress text
                         Positioned.fill(
                           child: Center(
                             child: Text(
@@ -476,38 +577,6 @@ class AnimalDetails extends StatelessWidget {
             ],
           ),
         ),
-        // TextButton(
-        //   onPressed: () => showDialog<String>(
-        //     context: context,
-        //     builder: (BuildContext context) => Dialog(
-        //       insetPadding: const EdgeInsets.only(
-        //         left: 20,
-        //         right: 20,
-        //         top: 20,
-        //         bottom: 100,
-        //       ),
-        //       child: Padding(
-        //         padding: const EdgeInsets.all(8.0),
-        //         child: Column(
-        //           mainAxisSize: MainAxisSize.min,
-        //           mainAxisAlignment: MainAxisAlignment.center,
-        //           children: <Widget>[
-        //             // Expanded(child: Text('This is a typical dialog.')),
-        //             AnimalDetails(entry: entry),
-        //             const SizedBox(height: 15),
-        //             TextButton(
-        //               onPressed: () {
-        //                 Navigator.pop(context);
-        //               },
-        //               child: const Text('Close'),
-        //             ),
-        //           ],
-        //         ),
-        //       ),
-        //     ),
-        //   ),
-        //   child: const Text('Show'),
-        // ),
       ],
     );
   }

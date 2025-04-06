@@ -27,6 +27,8 @@ dependencies:
 #  geolocator_android: ^5.0.1
   flutter_markdown_plus: ^1.0.3
   flutter_svg_provider: ^1.0.7
+  image: ^4.5.4
+  cached_network_image: ^3.3.0
 
 dev_dependencies:
   flutter_test:
